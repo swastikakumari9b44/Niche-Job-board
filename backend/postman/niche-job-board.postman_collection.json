@@ -1,0 +1,499 @@
+{
+  "info": {
+    "name": "Niche Job Board API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "employerToken",
+      "value": ""
+    },
+    {
+      "key": "candidateToken",
+      "value": ""
+    },
+    {
+      "key": "jobId",
+      "value": ""
+    },
+    {
+      "key": "applicationId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/health"
+      }
+    },
+    {
+      "name": "Register employer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test Employer\",\n  \"email\": \"employer@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"employer\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j=pm.response.json();pm.collectionVariables.set('employerToken', j.data.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login employer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"employer@example.com\",\n  \"password\": \"password123\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j=pm.response.json();pm.collectionVariables.set('employerToken', j.data.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Register candidate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test Candidate\",\n  \"email\": \"candidate@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"candidate\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j=pm.response.json();pm.collectionVariables.set('candidateToken', j.data.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login candidate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"candidate@example.com\",\n  \"password\": \"password123\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j=pm.response.json();pm.collectionVariables.set('candidateToken', j.data.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get my profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{candidateToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/users/me"
+      }
+    },
+    {
+      "name": "Update my profile",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{candidateToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/users/me",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test Candidate\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Profile: try to change role (expect 403)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{candidateToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/users/me",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"employer\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Create job (employer)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{employerToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/jobs",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Machine Learning Engineer\",\n  \"company\": \"TechNova\",\n  \"description\": \"Develop and deploy machine learning models.\",\n  \"nicheCategory\": \"AI/ML\",\n  \"location\": \"Bengaluru\",\n  \"employmentType\": \"Full-time\",\n  \"requiredSkills\": [\n    \"Python\",\n    \"PyTorch\",\n    \"MongoDB\"\n  ],\n  \"customFields\": {\n    \"framework\": \"PyTorch\",\n    \"experienceLevel\": \"Entry Level\"\n  }\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('jobId', pm.response.json().data._id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create job as candidate (expect 403)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{candidateToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/jobs",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Machine Learning Engineer\",\n  \"company\": \"TechNova\",\n  \"description\": \"Develop and deploy machine learning models.\",\n  \"nicheCategory\": \"AI/ML\",\n  \"location\": \"Bengaluru\",\n  \"employmentType\": \"Full-time\",\n  \"requiredSkills\": [\n    \"Python\",\n    \"PyTorch\",\n    \"MongoDB\"\n  ],\n  \"customFields\": {\n    \"framework\": \"PyTorch\",\n    \"experienceLevel\": \"Entry Level\"\n  }\n}"
+        }
+      }
+    },
+    {
+      "name": "Create job without token (expect 401)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/jobs",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Machine Learning Engineer\",\n  \"company\": \"TechNova\",\n  \"description\": \"Develop and deploy machine learning models.\",\n  \"nicheCategory\": \"AI/ML\",\n  \"location\": \"Bengaluru\",\n  \"employmentType\": \"Full-time\",\n  \"requiredSkills\": [\n    \"Python\",\n    \"PyTorch\",\n    \"MongoDB\"\n  ],\n  \"customFields\": {\n    \"framework\": \"PyTorch\",\n    \"experienceLevel\": \"Entry Level\"\n  }\n}"
+        }
+      }
+    },
+    {
+      "name": "List jobs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/jobs?page=1&limit=10"
+      }
+    },
+    {
+      "name": "Search + filter",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/jobs?category=AI/ML&location=Bengaluru&search=python"
+      }
+    },
+    {
+      "name": "Get job by id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/jobs/{{jobId}}"
+      }
+    },
+    {
+      "name": "Invalid ObjectId (expect 400)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/jobs/not-an-id"
+      }
+    },
+    {
+      "name": "Apply (candidate)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{candidateToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/applications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jobId\": \"{{jobId}}\",\n  \"candidateName\": \"Test Candidate\",\n  \"candidateEmail\": \"candidate@example.com\",\n  \"resumeUrl\": \"test-resume-reference.pdf\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('applicationId', pm.response.json().data._id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Apply again (expect 409)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{candidateToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/applications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jobId\": \"{{jobId}}\",\n  \"resumeUrl\": \"test-resume-reference.pdf\"\n}"
+        }
+      }
+    },
+    {
+      "name": "My applications",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{candidateToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/applications/my"
+      }
+    },
+    {
+      "name": "Applications for job (employer)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{employerToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/applications/job/{{jobId}}"
+      }
+    },
+    {
+      "name": "Applications for job as candidate (expect 403)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{candidateToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/applications/job/{{jobId}}"
+      }
+    },
+    {
+      "name": "Shortlist application",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{employerToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/applications/{{applicationId}}/status",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"Shortlisted\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Update job",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{employerToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/jobs/{{jobId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Senior ML Engineer\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Close job (soft delete)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{employerToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/jobs/{{jobId}}"
+      }
+    }
+  ]
+}
