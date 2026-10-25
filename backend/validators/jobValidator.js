@@ -1,41 +1,39 @@
 const { z } = require('zod');
-const { NICHE_CATEGORIES, EMPLOYMENT_TYPES } = require('../models/Job');
+const { NICHE_CATEGORIES, EMPLOYMENT_TYPES, categories } = require('../config/categories');
 
 const strList = (max = 30) => z.array(z.string().trim().min(1).max(60)).max(max);
 
-// Vertical-Switcher: allowed customFields per niche category. Unknown keys are rejected.
-const customFieldSchemas = {
-  'AI/ML': z.strictObject({
-    framework: z.string().trim().min(1).max(60).optional(),
-    experienceLevel: z.string().trim().min(1).max(60).optional(),
-    modelFrameworks: strList().optional(),
-    researchExperienceRequired: z.boolean().optional(),
-    gpuAccessProvided: z.boolean().optional(),
-    publicationsPreferred: z.boolean().optional(),
-  }),
-  Nursing: z.strictObject({
-    licenseType: z.enum(['RN', 'LPN', 'NP', 'CNA']).optional(),
-    licenseState: z.string().trim().min(1).max(60).optional(),
-    shiftType: z.enum(['day', 'night', 'rotating']).optional(),
-    yearsExperience: z.number().min(0).max(60).optional(),
-    certifications: strList().optional(),
-  }),
-  Web3: z.strictObject({
-    blockchains: strList().optional(),
-    smartContractLanguages: strList().optional(),
-    auditExperienceRequired: z.boolean().optional(),
-    tokenCompensation: z.boolean().optional(),
-  }),
-  Frontend: z.strictObject({
-    frameworks: strList().optional(),
-    designSystemExperience: z.boolean().optional(),
-    remotePolicy: z.enum(['remote', 'hybrid', 'onsite']).optional(),
-  }),
-  // "Other": small flat key/value bag
-  Other: z
-    .record(z.string().min(1).max(50), z.union([z.string().max(500), z.number(), z.boolean()]))
-    .refine((o) => Object.keys(o).length <= 20, 'Too many custom fields (max 20)'),
-};
+// Vertical-Switcher: Zod schemas are generated from config/categories.json (same data the frontend renders from).
+// z.strictObject => any key not defined for the category is rejected, so no arbitrary field injection.
+function fieldToZod(field) {
+  let schema;
+  switch (field.type) {
+    case 'select':
+      schema = z.enum(field.options);
+      break;
+    case 'multiselect':
+      schema = z.array(z.enum(field.options)).max(field.options.length);
+      if (field.required) schema = schema.min(1, `${field.label}: select at least one`);
+      break;
+    case 'tags':
+      schema = strList();
+      if (field.required) schema = schema.min(1, `${field.label}: add at least one`);
+      break;
+    case 'boolean':
+      schema = z.boolean();
+      break;
+    default:
+      schema = z.string().trim().min(1).max(200);
+  }
+  return field.required ? schema : schema.optional();
+}
+
+const customFieldSchemas = Object.fromEntries(
+  NICHE_CATEGORIES.map((name) => [
+    name,
+    z.strictObject(Object.fromEntries(categories[name].fields.map((f) => [f.key, fieldToZod(f)]))),
+  ])
+);
 
 // Returns { success, data } or { success: false, error }
 function validateCustomFields(category, fields) {
@@ -44,6 +42,14 @@ function validateCustomFields(category, fields) {
   return schema.safeParse(fields ?? {});
 }
 
+const salaryRangeSchema = z
+  .strictObject({
+    min: z.number().min(0).max(1e9).optional(),
+    max: z.number().min(0).max(1e9).optional(),
+    currency: z.string().trim().length(3).toUpperCase().optional(),
+  })
+  .refine((s) => s.min === undefined || s.max === undefined || s.min <= s.max, 'Minimum salary cannot exceed maximum');
+
 const baseShape = {
   title: z.string().trim().min(3).max(150),
   company: z.string().trim().min(1).max(150),
@@ -51,6 +57,7 @@ const baseShape = {
   nicheCategory: z.enum(NICHE_CATEGORIES),
   location: z.string().trim().min(1).max(150),
   employmentType: z.preprocess((v) => (typeof v === 'string' ? v.trim().toLowerCase() : v), z.enum(EMPLOYMENT_TYPES)),
+  salaryRange: salaryRangeSchema.optional(),
   requiredSkills: strList().default([]),
   customFields: z.record(z.string(), z.unknown()).default({}),
 };
@@ -78,19 +85,18 @@ const updateJobSchema = z
 const listJobsQuerySchema = z.object({
   category: z.enum(NICHE_CATEGORIES).optional(),
   location: z.string().trim().min(1).max(100).optional(),
+  employmentType: z.preprocess((v) => (typeof v === 'string' ? v.trim().toLowerCase() : v), z.enum(EMPLOYMENT_TYPES)).optional(),
   search: z.string().trim().min(1).max(100).optional(),
   keyword: z.string().trim().min(1).max(100).optional(), // alias of "search" (backward compatible)
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(10),
 });
 
-// Resume "reference": a plain PDF file name only (no paths, no URLs). Real uploads arrive on Day 3.
-const RESUME_REF = /^[A-Za-z0-9][A-Za-z0-9._-]{0,120}\.pdf$/i;
+// Multipart text fields; the PDF itself arrives as the "resume" file part.
 const applySchema = z.strictObject({
   jobId: z.string().regex(/^[a-f\d]{24}$/i, 'Invalid jobId'),
   candidateName: z.string().trim().min(1, 'Candidate name is required').max(100).optional(),
   candidateEmail: z.string().trim().toLowerCase().email('Invalid email address').max(200).optional(),
-  resumeUrl: z.string().trim().regex(RESUME_REF, 'resumeUrl must be a PDF file reference such as "resume.pdf" (no URLs or paths)'),
 });
 
 const statusSchema = z.strictObject({

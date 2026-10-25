@@ -9,8 +9,8 @@ const userSchema = new mongoose.Schema({
   },
   password: { type: String, required: true, minlength: 8, select: false },
   role: { type: String, enum: ['candidate', 'employer'], required: true },
-  createdAt: { type: Date, default: Date.now },
-});
+},
+{ timestamps: true });
 
 // Hash only when the password changed.
 userSchema.pre('save', async function () {

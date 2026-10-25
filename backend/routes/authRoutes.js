@@ -1,7 +1,12 @@
 const router = require('express').Router();
-const { register, login } = require('../controllers/authController');
+const { register, login, me, logout } = require('../controllers/authController');
+const { protect } = require('../middleware/authMiddleware');
+const { createAuthLimiter } = require('../middleware/rateLimiters');
 
-router.post('/register', register);
-router.post('/login', login);
+const limiter = createAuthLimiter();
+router.post('/register', limiter, register);
+router.post('/login', limiter, login);
+router.get('/me', protect, me);
+router.post('/logout', logout);
 
 module.exports = router;

@@ -1,12 +1,14 @@
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/AppError');
+const { COOKIE_NAME } = require('../utils/cookies');
 
 // Verifies "Authorization: Bearer <jwt>". Tokens are issued by the Day 2 login endpoint.
 // Payload expected: { id, role }. Stateless: no DB lookup on Day 1.
 function protect(req, _res, next) {
-  const header = req.headers.authorization || '';
-  const [scheme, token] = header.split(' ');
-  if (scheme !== 'Bearer' || !token) return next(new AppError('Authentication required', 401));
+  // Primary: HttpOnly cookie. Fallback: Authorization header (API clients / tests). Tokens are never kept in localStorage.
+  const [scheme, bearer] = (req.headers.authorization || '').split(' ');
+  const token = req.cookies?.[COOKIE_NAME] || (scheme === 'Bearer' ? bearer : null);
+  if (!token) return next(new AppError('Authentication required', 401));
   if (!process.env.JWT_SECRET) return next(new AppError('Server configuration error', 500));
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });

@@ -1,6 +1,7 @@
 // No real MongoDB needed: every test below is rejected/answered before any DB call.
+process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-secret-test-secret-123';
-process.env.CORS_ORIGIN = 'http://localhost:5173';
+process.env.CORS_ORIGIN = 'http://localhost:5173'; // deliberately stale
 const { test, before, after } = require('node:test');
 const assert = require('node:assert');
 const jwt = require('jsonwebtoken');
@@ -19,7 +20,8 @@ after(() => server.close());
 const validJob = {
   title: 'ML Engineer', company: 'Acme', description: 'Build and ship models.',
   nicheCategory: 'AI/ML', location: 'Remote', employmentType: 'full-time',
-  requiredSkills: ['python'], customFields: { modelFrameworks: ['pytorch'], gpuAccessProvided: true },
+  requiredSkills: ['python'],
+  customFields: { programmingLanguages: ['Python'], mlFrameworks: ['PyTorch'], experienceLevel: 'Entry Level' },
 };
 
 test('GET / and /api/health respond without a database', async () => {
@@ -41,12 +43,36 @@ test('job schema rejects missing fields, bad category, and client-supplied emplo
   assert.ok(!createJobSchema.safeParse({ ...validJob, promotion: { pinnedUntil: '2099-01-01' } }).success);
 });
 
-test('category-specific custom fields are enforced', () => {
-  assert.ok(validateCustomFields('Nursing', { licenseType: 'RN', shiftType: 'night' }).success);
-  assert.ok(!validateCustomFields('Nursing', { blockchains: ['eth'] }).success); // Web3 field on Nursing
-  assert.ok(!validateCustomFields('Nursing', { licenseType: 'DOCTOR' }).success);
-  assert.ok(!validateCustomFields('Web3', { auditExperienceRequired: 'yes' }).success);
-  assert.ok(!createJobSchema.safeParse({ ...validJob, customFields: { licenseType: 'RN' } }).success);
+test('category-specific custom fields are enforced (Vertical-Switcher)', () => {
+  const N = 'Nursing / Healthcare';
+  assert.ok(validateCustomFields(N, { license: 'RN', specialization: 'Pediatrics', experienceLevel: 'Mid Level' }).success);
+  assert.ok(!validateCustomFields(N, { license: 'RN', specialization: 'Pediatrics', experienceLevel: 'Mid Level', blockchainEcosystem: ['Ethereum'] }).success); // foreign field
+  assert.ok(!validateCustomFields(N, { specialization: 'Pediatrics', experienceLevel: 'Mid Level' }).success); // required license missing
+  assert.ok(!validateCustomFields(N, { license: 'DOCTOR', specialization: 'Pediatrics', experienceLevel: 'Mid Level' }).success); // bad option
+  assert.ok(!validateCustomFields('Web3 / Blockchain', { blockchainEcosystem: [], smartContractLanguages: ['Solidity'] }).success); // empty required list
+  assert.ok(validateCustomFields('Other', {}).success);
+  assert.ok(!validateCustomFields('Other', { anything: 'x' }).success); // no arbitrary injection
+  assert.ok(!createJobSchema.safeParse({ ...validJob, customFields: { license: 'RN' } }).success);
+  assert.ok(createJobSchema.safeParse({ ...validJob, salaryRange: { min: 10, max: 20 } }).success);
+  assert.ok(!createJobSchema.safeParse({ ...validJob, salaryRange: { min: 30, max: 20 } }).success);
+});
+
+test('GET /api/categories exposes the shared config for the frontend', async () => {
+  const body = await (await call('/api/categories')).json();
+  assert.deepStrictEqual(Object.keys(body.data.categories), ['AI/ML', 'Frontend Development', 'Web3 / Blockchain', 'Nursing / Healthcare', 'Data Science', 'Cybersecurity', 'Other']);
+});
+
+test('GET /api/auth/me and employer jobs need authentication; resume needs authentication', async () => {
+  assert.strictEqual((await call('/api/auth/me')).status, 401);
+  assert.strictEqual((await call('/api/employer/jobs')).status, 401);
+  assert.strictEqual((await call(`/api/applications/${ID}/resume`)).status, 401);
+  assert.strictEqual((await call('/api/employer/jobs', { headers: { authorization: `Bearer ${token('candidate')}` } })).status, 403);
+});
+
+test('auth cookie is accepted; uploads dir is not publicly served', async () => {
+  const res = await call('/api/auth/me', { headers: { cookie: `token=${token('employer')}` } });
+  assert.notStrictEqual(res.status, 401); // reaches the DB lookup (which has no DB here) instead of being rejected
+  assert.strictEqual((await call('/uploads/anything.pdf')).status, 404);
 });
 
 test('protected endpoints return 401 without a token', async () => {
@@ -98,4 +124,14 @@ test('error responses are JSON and do not leak internals', async () => {
 test('invalid query params return 400', async () => {
   assert.strictEqual((await call('/api/jobs?category=Plumbing')).status, 400);
   assert.strictEqual((await call('/api/jobs?limit=9999')).status, 400);
+});
+
+test('CORS: local Next.js origin is allowed in development even if CORS_ORIGIN is stale; unknown origins are not', async () => {
+  const pre = (origin) => fetch(base + '/api/auth/login', { method: 'OPTIONS', headers: { origin, 'access-control-request-method': 'POST' } });
+  const ok = await pre('http://localhost:3000');
+  assert.strictEqual(ok.headers.get('access-control-allow-origin'), 'http://localhost:3000');
+  assert.strictEqual(ok.headers.get('access-control-allow-credentials'), 'true');
+  assert.strictEqual((await pre('http://localhost:3001')).headers.get('access-control-allow-origin'), 'http://localhost:3001'); // Next.js fallback port
+  assert.strictEqual((await pre('http://evil.example')).headers.get('access-control-allow-origin'), null);
+  assert.strictEqual((await pre('http://localhost.evil.example')).headers.get('access-control-allow-origin'), null);
 });

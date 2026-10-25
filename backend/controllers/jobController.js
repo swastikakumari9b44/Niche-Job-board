@@ -8,10 +8,11 @@ const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, ne
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 exports.getJobs = asyncHandler(async (req, res) => {
-  const { category, location, search, keyword, page, limit } = listJobsQuerySchema.parse(req.query);
+  const { category, location, employmentType, search, keyword, page, limit } = listJobsQuerySchema.parse(req.query);
   const term = search || keyword;
   const filter = { status: 'active' };
   if (category) filter.nicheCategory = category;
+  if (employmentType) filter.employmentType = employmentType;
   if (location) filter.location = new RegExp(escapeRegex(location), 'i');
   if (term) {
     const rx = new RegExp(escapeRegex(term), 'i');
@@ -32,6 +33,7 @@ exports.getJobById = asyncHandler(async (req, res) => {
 
 exports.createJob = asyncHandler(async (req, res) => {
   const data = createJobSchema.parse(req.body);
+  data.customFields = validateCustomFields(data.nicheCategory, data.customFields).data; // trimmed/normalized, known keys only
   const job = await Job.create({ ...data, employerId: req.user.id }); // employerId from token only
   res.status(201).json({ success: true, message: 'Job created successfully', data: job });
 });
@@ -54,6 +56,7 @@ exports.updateJob = asyncHandler(async (req, res) => {
     if (!r.success) {
       throw new AppError(`Invalid customFields for ${category}: ${r.error.issues.map((i) => i.message).join('; ')}`, 400);
     }
+    updates.customFields = r.data;
   }
   job.set(updates);
   await job.save();
@@ -66,4 +69,10 @@ exports.closeJob = asyncHandler(async (req, res) => {
   job.status = 'closed';
   await job.save();
   res.json({ success: true, message: 'Job closed', data: job });
+});
+
+// GET /api/employer/jobs: all of the logged-in employer's jobs (active and closed)
+exports.getEmployerJobs = asyncHandler(async (req, res) => {
+  const jobs = await Job.find({ employerId: req.user.id }).sort({ createdAt: -1 }).lean();
+  res.json({ success: true, message: 'Jobs retrieved successfully', data: jobs });
 });

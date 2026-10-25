@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
-const NICHE_CATEGORIES = ['AI/ML', 'Nursing', 'Web3', 'Frontend', 'Other'];
-const EMPLOYMENT_TYPES = ['full-time', 'part-time', 'contract', 'internship', 'temporary'];
+const { NICHE_CATEGORIES, EMPLOYMENT_TYPES } = require('../config/categories');
 
 const jobSchema = new mongoose.Schema(
   {
@@ -11,6 +10,11 @@ const jobSchema = new mongoose.Schema(
     nicheCategory: { type: String, enum: NICHE_CATEGORIES, required: true },
     location: { type: String, required: true, trim: true, maxlength: 150 },
     employmentType: { type: String, enum: EMPLOYMENT_TYPES, required: true },
+    salaryRange: {
+      min: { type: Number, min: 0 },
+      max: { type: Number, min: 0 },
+      currency: { type: String, trim: true, uppercase: true, maxlength: 3, default: 'INR' },
+    },
     requiredSkills: { type: [String], default: [] },
     // Vertical-Switcher: niche-specific fields, validated per category in validators/jobValidator.js
     customFields: { type: mongoose.Schema.Types.Mixed, default: {} },

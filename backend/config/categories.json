@@ -1,0 +1,338 @@
+{
+  "categories": {
+    "AI/ML": {
+      "description": "Machine learning and AI engineering roles",
+      "fields": [
+        {
+          "key": "programmingLanguages",
+          "label": "Required programming languages",
+          "type": "tags",
+          "required": true,
+          "placeholder": "Python, C++ ..."
+        },
+        {
+          "key": "mlFrameworks",
+          "label": "ML frameworks",
+          "type": "multiselect",
+          "required": true,
+          "options": [
+            "PyTorch",
+            "TensorFlow",
+            "Scikit-learn"
+          ]
+        },
+        {
+          "key": "modelDeploymentExperience",
+          "label": "Model deployment experience required",
+          "type": "boolean",
+          "required": false
+        },
+        {
+          "key": "mlopsTools",
+          "label": "MLOps tools",
+          "type": "tags",
+          "required": false,
+          "placeholder": "MLflow, Kubeflow ..."
+        },
+        {
+          "key": "experienceLevel",
+          "label": "Experience level",
+          "type": "select",
+          "required": true,
+          "options": [
+            "Entry Level",
+            "Mid Level",
+            "Senior Level",
+            "Lead / Principal"
+          ]
+        }
+      ]
+    },
+    "Frontend Development": {
+      "description": "Web UI and frontend engineering",
+      "fields": [
+        {
+          "key": "framework",
+          "label": "Framework",
+          "type": "select",
+          "required": true,
+          "options": [
+            "React",
+            "Next.js",
+            "Angular",
+            "Vue"
+          ]
+        },
+        {
+          "key": "languages",
+          "label": "Languages",
+          "type": "multiselect",
+          "required": true,
+          "options": [
+            "JavaScript",
+            "TypeScript"
+          ]
+        },
+        {
+          "key": "cssFramework",
+          "label": "CSS framework",
+          "type": "select",
+          "required": false,
+          "options": [
+            "Tailwind CSS",
+            "Bootstrap",
+            "Material UI",
+            "SASS / Plain CSS",
+            "Other"
+          ]
+        },
+        {
+          "key": "responsiveDesignExperience",
+          "label": "Responsive design experience required",
+          "type": "boolean",
+          "required": false
+        },
+        {
+          "key": "experienceLevel",
+          "label": "Experience level",
+          "type": "select",
+          "required": true,
+          "options": [
+            "Entry Level",
+            "Mid Level",
+            "Senior Level",
+            "Lead / Principal"
+          ]
+        }
+      ]
+    },
+    "Web3 / Blockchain": {
+      "description": "Smart contracts, dApps and protocols",
+      "fields": [
+        {
+          "key": "blockchainEcosystem",
+          "label": "Blockchain ecosystem",
+          "type": "multiselect",
+          "required": true,
+          "options": [
+            "Ethereum",
+            "Solana",
+            "Polygon",
+            "Bitcoin",
+            "Cosmos",
+            "Other"
+          ]
+        },
+        {
+          "key": "smartContractLanguages",
+          "label": "Smart contract languages",
+          "type": "multiselect",
+          "required": true,
+          "options": [
+            "Solidity",
+            "Rust",
+            "Vyper",
+            "Move"
+          ]
+        },
+        {
+          "key": "walletIntegrationExperience",
+          "label": "Wallet integration experience required",
+          "type": "boolean",
+          "required": false
+        },
+        {
+          "key": "web3Libraries",
+          "label": "Web3 libraries",
+          "type": "tags",
+          "required": false,
+          "placeholder": "ethers.js, wagmi ..."
+        },
+        {
+          "key": "protocolFamiliarity",
+          "label": "Protocol familiarity",
+          "type": "tags",
+          "required": false,
+          "placeholder": "Uniswap, Aave ..."
+        }
+      ]
+    },
+    "Nursing / Healthcare": {
+      "description": "Clinical and healthcare roles",
+      "fields": [
+        {
+          "key": "license",
+          "label": "Required nursing license",
+          "type": "select",
+          "required": true,
+          "options": [
+            "RN",
+            "LPN / LVN",
+            "NP",
+            "CNA",
+            "Other"
+          ]
+        },
+        {
+          "key": "certifications",
+          "label": "Certifications",
+          "type": "tags",
+          "required": false,
+          "placeholder": "BLS, ACLS ..."
+        },
+        {
+          "key": "specialization",
+          "label": "Specialization",
+          "type": "select",
+          "required": true,
+          "options": [
+            "General",
+            "Critical Care",
+            "Emergency",
+            "Pediatrics",
+            "Surgical",
+            "Geriatrics",
+            "Mental Health"
+          ]
+        },
+        {
+          "key": "shiftPreference",
+          "label": "Shift preference",
+          "type": "select",
+          "required": false,
+          "options": [
+            "Day",
+            "Night",
+            "Rotating",
+            "Flexible"
+          ]
+        },
+        {
+          "key": "experienceLevel",
+          "label": "Experience level",
+          "type": "select",
+          "required": true,
+          "options": [
+            "Entry Level",
+            "Mid Level",
+            "Senior Level",
+            "Lead / Principal"
+          ]
+        }
+      ]
+    },
+    "Data Science": {
+      "description": "Analytics, statistics and data roles",
+      "fields": [
+        {
+          "key": "pythonRProficiency",
+          "label": "Python / R proficiency",
+          "type": "select",
+          "required": true,
+          "options": [
+            "Python",
+            "R",
+            "Python & R"
+          ]
+        },
+        {
+          "key": "sqlExperience",
+          "label": "SQL experience",
+          "type": "select",
+          "required": true,
+          "options": [
+            "Basic",
+            "Intermediate",
+            "Advanced"
+          ]
+        },
+        {
+          "key": "visualizationTools",
+          "label": "Data visualization tools",
+          "type": "tags",
+          "required": false,
+          "placeholder": "Tableau, Power BI ..."
+        },
+        {
+          "key": "machineLearningExperience",
+          "label": "Machine learning experience required",
+          "type": "boolean",
+          "required": false
+        },
+        {
+          "key": "statisticsProficiency",
+          "label": "Statistics proficiency",
+          "type": "select",
+          "required": false,
+          "options": [
+            "Basic",
+            "Intermediate",
+            "Advanced"
+          ]
+        }
+      ]
+    },
+    "Cybersecurity": {
+      "description": "Security engineering and operations",
+      "fields": [
+        {
+          "key": "securityCertifications",
+          "label": "Security certifications",
+          "type": "tags",
+          "required": false,
+          "placeholder": "CISSP, CEH, OSCP ..."
+        },
+        {
+          "key": "securityTools",
+          "label": "Security tools",
+          "type": "tags",
+          "required": false,
+          "placeholder": "Wireshark, Splunk ..."
+        },
+        {
+          "key": "networkSecurityExperience",
+          "label": "Network security experience required",
+          "type": "boolean",
+          "required": false
+        },
+        {
+          "key": "penetrationTestingExperience",
+          "label": "Penetration testing experience required",
+          "type": "boolean",
+          "required": false
+        },
+        {
+          "key": "experienceLevel",
+          "label": "Experience level",
+          "type": "select",
+          "required": true,
+          "options": [
+            "Entry Level",
+            "Mid Level",
+            "Senior Level",
+            "Lead / Principal"
+          ]
+        }
+      ]
+    },
+    "Other": {
+      "description": "Any other role",
+      "fields": [
+        {
+          "key": "additionalSkills",
+          "label": "Additional skills",
+          "type": "tags",
+          "required": false,
+          "placeholder": "Optional"
+        }
+      ]
+    }
+  },
+  "employmentTypes": [
+    "Full-time",
+    "Part-time",
+    "Contract",
+    "Internship",
+    "Temporary"
+  ]
+}
