@@ -11,6 +11,7 @@ const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
 const employerRoutes = require('./routes/employerRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const { protect, requireRole } = require('./middleware/authMiddleware');
 const { applyToJob } = require('./controllers/applicationController');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
@@ -18,6 +19,8 @@ const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 const app = express();
 
 app.disable('x-powered-by');
+// Render (and most hosts) put a proxy in front of Express; trust one hop so req.ip, rate limiting and secure cookies use the real client.
+if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);
 app.use(
   cors({
     credentials: true, // allow the browser to send the HttpOnly auth cookie from an allow-listed origin
@@ -49,6 +52,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/employer', employerRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

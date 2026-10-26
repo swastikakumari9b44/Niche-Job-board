@@ -9,6 +9,7 @@ function errorHandler(err, _req, res, _next) {
   let status = 500;
   let message = 'Internal server error';
   let details;
+  let code;
 
   if (err instanceof ZodError) {
     status = 400;
@@ -17,6 +18,7 @@ function errorHandler(err, _req, res, _next) {
   } else if (err instanceof AppError) {
     status = err.statusCode;
     message = err.message;
+    code = err.errorCode;
   } else if (err instanceof multer.MulterError) {
     status = 400;
     message = err.code === 'LIMIT_FILE_SIZE' ? 'File too large' : 'Invalid file upload';
@@ -43,7 +45,7 @@ function errorHandler(err, _req, res, _next) {
 
   if (status >= 500) console.error(err); // log server-side only, never send internals
 
-  res.status(status).json({ success: false, message, ...(details && { errors: details }) });
+  res.status(status).json({ success: false, message, ...(code && { code }), ...(details && { errors: details }) });
 }
 
 module.exports = { notFound, errorHandler };

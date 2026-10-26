@@ -6,7 +6,7 @@ import { Briefcase, LayoutDashboard, LogOut, Menu, PlusCircle, X } from "lucide-
 import { useAuth } from "./AuthProvider";
 
 export default function Navbar() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, suspended, logout } = useAuth();
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
@@ -21,6 +21,7 @@ export default function Navbar() {
   if (user?.role === "employer") {
     links.push({ href: "/employer/post", label: "Post a job", icon: PlusCircle }, { href: "/employer/dashboard", label: "Dashboard", icon: LayoutDashboard });
   }
+  if (user?.role === "admin") links.push({ href: "/admin", label: "Admin panel", icon: LayoutDashboard });
   if (user?.role === "candidate") links.push({ href: "/candidate/dashboard", label: "My applications", icon: LayoutDashboard });
 
   return (
@@ -54,6 +55,12 @@ export default function Navbar() {
           {open ? <X size={22} /> : <Menu size={22} />}
         </button>
       </nav>
+
+      {suspended && (
+        <div role="alert" className="border-t border-red-200 bg-red-50 px-4 py-2 text-center text-sm font-medium text-red-800">
+          Your account has been suspended. Please contact support if you think this is a mistake.
+        </div>
+      )}
 
       {open && (
         <div className="border-t border-slate-200 bg-white px-4 py-3 md:hidden">

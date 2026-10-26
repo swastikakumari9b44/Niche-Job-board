@@ -9,12 +9,13 @@ export const useAuth = () => useContext(AuthContext);
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [suspended, setSuspended] = useState(false); // true when the server says this account was suspended
 
   useEffect(() => {
     let cancelled = false;
     api("/api/auth/me")
       .then((r) => !cancelled && setUser(r.data.user))
-      .catch(() => !cancelled && setUser(null))
+      .catch((err) => { if (!cancelled) { setUser(null); setSuspended(err.code === "ACCOUNT_SUSPENDED"); } })
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
@@ -24,6 +25,7 @@ export default function AuthProvider({ children }) {
   const login = useCallback(async (email, password) => {
     const r = await api("/api/auth/login", { method: "POST", body: { email, password } });
     setUser(r.data.user);
+    setSuspended(false);
     return r.data.user;
   }, []);
 
@@ -38,6 +40,6 @@ export default function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, loading, login, register, logout }), [user, loading, login, register, logout]);
+  const value = useMemo(() => ({ user, loading, suspended, login, register, logout }), [user, loading, suspended, login, register, logout]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

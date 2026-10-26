@@ -6,16 +6,26 @@ const { test, before, after } = require('node:test');
 const assert = require('node:assert');
 const jwt = require('jsonwebtoken');
 const app = require('../app');
+const User = require('../models/User');
 const { createJobSchema, validateCustomFields } = require('../validators/jobValidator');
 
 let server, base;
 const ID = 'a'.repeat(24);
-const token = (role) => jwt.sign({ id: ID, role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+// One account per role. The auth middleware now checks the account in the database (exists, not suspended, stored role),
+// so these unit tests stub that single lookup instead of needing MongoDB.
+const IDS = { candidate: ID, employer: 'b'.repeat(24), admin: 'c'.repeat(24) };
+const accounts = Object.fromEntries(Object.entries(IDS).map(([role, id]) => [id, { _id: id, role, status: 'active', name: role, email: `${role}@example.com` }]));
+const realFindById = User.findById;
+User.findById = (id) => {
+  const doc = accounts[String(id)] || null;
+  return Object.assign(Promise.resolve(doc), { select: () => ({ lean: () => Promise.resolve(doc) }) });
+};
+const token = (role) => jwt.sign({ id: IDS[role], role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 const call = (path, opts = {}) =>
   fetch(base + path, { ...opts, headers: { 'content-type': 'application/json', ...(opts.headers || {}) } });
 
 before(() => new Promise((r) => { server = app.listen(0, () => { base = `http://127.0.0.1:${server.address().port}`; r(); }); }));
-after(() => server.close());
+after(() => { server.close(); User.findById = realFindById; });
 
 const validJob = {
   title: 'ML Engineer', company: 'Acme', description: 'Build and ship models.',
@@ -134,4 +144,63 @@ test('CORS: local Next.js origin is allowed in development even if CORS_ORIGIN i
   assert.strictEqual((await pre('http://localhost:3001')).headers.get('access-control-allow-origin'), 'http://localhost:3001'); // Next.js fallback port
   assert.strictEqual((await pre('http://evil.example')).headers.get('access-control-allow-origin'), null);
   assert.strictEqual((await pre('http://localhost.evil.example')).headers.get('access-control-allow-origin'), null);
+});
+
+test('admin API: 401 without a token, 403 for candidates and employers, never reachable by role in the token alone', async () => {
+  const paths = ['/api/admin/stats', '/api/admin/users', `/api/admin/users/${ID}`, '/api/admin/jobs', '/api/admin/analytics/applications', '/api/admin/audit-logs'];
+  for (const p of paths) {
+    assert.strictEqual((await call(p)).status, 401, `no token ${p}`);
+    for (const role of ['candidate', 'employer']) {
+      const r = await call(p, { headers: { authorization: `Bearer ${token(role)}` } });
+      assert.strictEqual(r.status, 403, `${role} ${p}`);
+    }
+  }
+  for (const [m, p] of [['PATCH', `/api/admin/users/${ID}/status`], ['PATCH', `/api/admin/jobs/${ID}/moderation`]]) {
+    assert.strictEqual((await call(p, { method: m, body: '{}' })).status, 401);
+    assert.strictEqual((await call(p, { method: m, body: '{}', headers: { authorization: `Bearer ${token('employer')}` } })).status, 403);
+  }
+});
+
+test('a token claiming "admin" for an account that is not an admin is refused (database role wins)', async () => {
+  const forged = jwt.sign({ id: IDS.candidate, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  const r = await call('/api/admin/stats', { headers: { authorization: `Bearer ${forged}` } });
+  assert.strictEqual(r.status, 403);
+});
+
+test('suspended and deleted accounts are rejected on every protected route', async () => {
+  accounts[IDS.candidate].status = 'suspended';
+  const sus = await call('/api/auth/me', { headers: { authorization: `Bearer ${token('candidate')}` } });
+  assert.strictEqual(sus.status, 403);
+  assert.strictEqual((await sus.json()).code, 'ACCOUNT_SUSPENDED');
+  accounts[IDS.candidate].status = 'active';
+  const gone = accounts[IDS.employer]; delete accounts[IDS.employer];
+  assert.strictEqual((await call('/api/employer/jobs', { headers: { authorization: `Bearer ${token('employer')}` } })).status, 401);
+  accounts[IDS.employer] = gone;
+});
+
+test('nobody can register as admin or smuggle role/status in', async () => {
+  for (const extra of [{ role: 'admin' }, { role: 'Admin' }, { role: 'employer', status: 'active' }, { role: 'candidate', isAdmin: true }]) {
+    const r = await call('/api/auth/register', { method: 'POST', body: JSON.stringify({ name: 'X', email: 'x@example.com', password: 'password123', ...{ role: 'candidate' }, ...extra }) });
+    assert.strictEqual(r.status, 400, JSON.stringify(extra));
+  }
+});
+
+test('admin request validation (pure schemas)', () => {
+  const v = require('../validators/adminValidator');
+  assert.ok(v.userStatusBody.safeParse({ status: 'suspended', reason: 'Spam postings' }).success);
+  assert.ok(!v.userStatusBody.safeParse({ status: 'suspended' }).success); // reason required
+  assert.ok(!v.userStatusBody.safeParse({ status: 'suspended', reason: 'no' }).success);
+  assert.ok(!v.userStatusBody.safeParse({ status: 'banned', reason: 'Spam postings' }).success);
+  assert.ok(!v.userStatusBody.safeParse({ status: 'active', reason: 'Appeal accepted', role: 'admin' }).success); // strict
+  assert.ok(v.jobModerationBody.safeParse({ action: 'remove', reason: 'Fraudulent listing' }).success);
+  assert.ok(!v.jobModerationBody.safeParse({ action: 'delete', reason: 'Fraudulent listing' }).success);
+  assert.ok(!v.listUsersQuery.safeParse({ limit: 500 }).success);
+  assert.ok(!v.analyticsQuery.safeParse({ days: 15 }).success);
+  assert.strictEqual(v.analyticsQuery.parse({}).days, 30);
+});
+
+test('admin bootstrap rejects weak passwords and bad emails (no database needed)', async () => {
+  const { createAdminAccount } = require('../services/adminBootstrap');
+  await assert.rejects(createAdminAccount({ name: 'A', email: 'a@example.com', password: 'short' }), /12 characters/);
+  await assert.rejects(createAdminAccount({ name: 'A', email: 'nope', password: 'a-long-enough-password' }), /email/i);
 });

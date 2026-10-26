@@ -94,13 +94,16 @@ function Dashboard() {
                   <tr key={j._id}>
                     <td className="px-4 py-3 font-medium"><Link href={`/jobs/${j._id}`} className="hover:text-indigo-600">{j.title}</Link><div className="text-xs font-normal text-slate-500">{j.company}</div></td>
                     <td className="px-4 py-3"><Badge tone="indigo">{j.nicheCategory}</Badge></td>
-                    <td className="px-4 py-3"><StatusBadge status={j.status} /></td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={j.status} />
+                      {j.moderation?.status === "removed" && <div className="mt-1 max-w-52 text-xs text-red-700" title={j.moderation.reason}>Removed by a moderator: {j.moderation.reason}</div>}
+                    </td>
                     <td className="px-4 py-3">{j.applicants}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-slate-600">{formatDate(j.createdAt)}</td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
-                        <Link href={`/employer/edit/${j._id}`} className="btn-secondary !px-3 !py-1.5"><Pencil size={14} aria-hidden="true" />Edit</Link>
-                        {j.status === "active" && <button onClick={() => closeJob(j)} disabled={busyId === j._id} className="btn-danger !px-3 !py-1.5"><XCircle size={14} aria-hidden="true" />Close</button>}
+                        {j.moderation?.status !== "removed" && <Link href={`/employer/edit/${j._id}`} className="btn-secondary !px-3 !py-1.5"><Pencil size={14} aria-hidden="true" />Edit</Link>}
+                        {j.status === "active" && j.moderation?.status !== "removed" && <button onClick={() => closeJob(j)} disabled={busyId === j._id} className="btn-danger !px-3 !py-1.5"><XCircle size={14} aria-hidden="true" />Close</button>}
                       </div>
                     </td>
                   </tr>

@@ -7,7 +7,7 @@ import { useAuth } from "./AuthProvider";
 import Field from "./Field";
 import { Alert, Spinner } from "./ui";
 
-const home = (role) => (role === "employer" ? "/employer/dashboard" : "/jobs");
+const home = (role) => (role === "admin" ? "/admin" : role === "employer" ? "/employer/dashboard" : "/jobs");
 
 export default function AuthForm({ mode }) {
   const isRegister = mode === "register";

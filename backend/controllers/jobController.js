@@ -19,7 +19,7 @@ exports.getJobs = asyncHandler(async (req, res) => {
     filter.$or = [{ title: rx }, { company: rx }, { description: rx }, { requiredSkills: rx }];
   }
   const [jobs, total] = await Promise.all([
-    Job.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+    Job.find(filter).select('-moderation').sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
     Job.countDocuments(filter),
   ]);
   res.json({ success: true, message: 'Jobs retrieved successfully', data: jobs, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
@@ -27,7 +27,8 @@ exports.getJobs = asyncHandler(async (req, res) => {
 
 exports.getJobById = asyncHandler(async (req, res) => {
   const job = await Job.findById(req.params.id).lean();
-  if (!job) throw new AppError('Job not found', 404);
+  if (!job || job.moderation?.status === 'removed') throw new AppError('Job not found', 404);
+  delete job.moderation; // internal moderation notes are not public
   res.json({ success: true, message: 'Job retrieved successfully', data: job });
 });
 
@@ -42,6 +43,7 @@ async function findOwnedJob(req) {
   const job = await Job.findById(req.params.id);
   if (!job) throw new AppError('Job not found', 404);
   if (String(job.employerId) !== req.user.id) throw new AppError('You do not own this job', 403);
+  if (job.moderation?.status === 'removed') throw new AppError('This job was removed by a moderator and cannot be changed', 403);
   return job;
 }
 

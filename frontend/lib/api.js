@@ -16,10 +16,11 @@ export function apiBase() {
 }
 
 export class ApiError extends Error {
-  constructor(message, status, errors) {
+  constructor(message, status, errors, code) {
     super(message);
     this.status = status;
     this.errors = errors || [];
+    this.code = code; // e.g. ACCOUNT_SUSPENDED
   }
 }
 
@@ -38,7 +39,7 @@ export async function api(path, { method = "GET", body, form } = {}) {
   }
   const json = await res.json().catch(() => null);
   if (!res.ok || json?.success === false) {
-    throw new ApiError(json?.message || `Request failed (${res.status})`, res.status, json?.errors);
+    throw new ApiError(json?.message || `Request failed (${res.status})`, res.status, json?.errors, json?.code);
   }
   return json;
 }

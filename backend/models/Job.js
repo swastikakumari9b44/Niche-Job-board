@@ -20,6 +20,13 @@ const jobSchema = new mongoose.Schema(
     customFields: { type: mongoose.Schema.Types.Mixed, default: {} },
     status: { type: String, enum: ['active', 'closed'], default: 'active' },
     employerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    // Admin moderation. Set only by /api/admin endpoints. Jobs created earlier have no value (= 'none').
+    moderation: {
+      status: { type: String, enum: ['none', 'flagged', 'removed'], default: 'none' },
+      reason: { type: String, trim: true, maxlength: 500 },
+      at: Date,
+      by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    },
     // Set by the server only (future payment flow). Never from client input.
     promotion: {
       pinnedUntil: { type: Date, default: null },

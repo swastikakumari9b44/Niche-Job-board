@@ -35,6 +35,7 @@ exports.login = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email }).select('+password');
   const ok = user ? await user.comparePassword(password) : (await bcrypt.compare(password, DUMMY_HASH), false);
   if (!ok) throw new AppError('Invalid email or password', 401);
+  if (user.status === 'suspended') throw new AppError('Your account has been suspended. Please contact support.', 403, 'ACCOUNT_SUSPENDED');
   setAuthCookie(res, signToken(user));
   res.json({ success: true, message: 'Login successful', data: { user } });
 });
