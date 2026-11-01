@@ -1,5 +1,6 @@
 const Job = require('../models/Job');
 const AppError = require('../utils/AppError');
+const { isFeaturedActive, featuredActiveExpr } = require('../utils/featured');
 const {
   createJobSchema, updateJobSchema, listJobsQuerySchema, validateCustomFields,
 } = require('../validators/jobValidator');
@@ -18,8 +19,18 @@ exports.getJobs = asyncHandler(async (req, res) => {
     const rx = new RegExp(escapeRegex(term), 'i');
     filter.$or = [{ title: rx }, { company: rx }, { description: rx }, { requiredSkills: rx }];
   }
+  // Featured jobs first, THEN newest first, sorted in the database BEFORE skip/limit so pages never repeat or skip jobs.
+  const now = new Date();
   const [jobs, total] = await Promise.all([
-    Job.find(filter).select('-moderation').sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+    Job.aggregate([
+      { $match: filter },
+      { $addFields: { featured: featuredActiveExpr(now) } },
+      { $sort: { featured: -1, createdAt: -1, _id: -1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit },
+      { $addFields: { featuredUntil: { $cond: ['$featured', '$featuredUntil', '$$REMOVE'] } } },
+      { $project: { moderation: 0, isFeatured: 0, featuredAt: 0, featuredPaymentId: 0, __v: 0 } },
+    ]),
     Job.countDocuments(filter),
   ]);
   res.json({ success: true, message: 'Jobs retrieved successfully', data: jobs, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
@@ -28,7 +39,10 @@ exports.getJobs = asyncHandler(async (req, res) => {
 exports.getJobById = asyncHandler(async (req, res) => {
   const job = await Job.findById(req.params.id).lean();
   if (!job || job.moderation?.status === 'removed') throw new AppError('Job not found', 404);
+  job.featured = isFeaturedActive(job); // must be computed BEFORE the internal moderation info is removed
   delete job.moderation; // internal moderation notes are not public
+  if (!job.featured) delete job.featuredUntil;
+  delete job.isFeatured; delete job.featuredAt; delete job.featuredPaymentId;
   res.json({ success: true, message: 'Job retrieved successfully', data: job });
 });
 
@@ -75,6 +89,9 @@ exports.closeJob = asyncHandler(async (req, res) => {
 
 // GET /api/employer/jobs: all of the logged-in employer's jobs (active and closed)
 exports.getEmployerJobs = asyncHandler(async (req, res) => {
-  const jobs = await Job.find({ employerId: req.user.id }).sort({ createdAt: -1 }).lean();
+  const jobs = (await Job.find({ employerId: req.user.id }).sort({ createdAt: -1 }).lean()).map((j) => {
+    const { featuredPaymentId, isFeatured, ...rest } = j;
+    return { ...rest, featured: isFeaturedActive(j), featuredUntil: isFeaturedActive(j) ? j.featuredUntil : undefined };
+  });
   res.json({ success: true, message: 'Jobs retrieved successfully', data: jobs });
 });

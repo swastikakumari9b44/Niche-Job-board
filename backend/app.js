@@ -12,6 +12,8 @@ const authRoutes = require('./routes/authRoutes');
 const employerRoutes = require('./routes/employerRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const { webhook: razorpayWebhook } = require('./controllers/paymentController');
 const { protect, requireRole } = require('./middleware/authMiddleware');
 const { applyToJob } = require('./controllers/applicationController');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
@@ -28,6 +30,8 @@ app.use(
     origin: (origin, cb) => cb(null, isAllowedOrigin(origin)),
   })
 );
+// Razorpay webhook FIRST, with the raw body: its signature is computed over the exact bytes, so JSON parsing must not touch it.
+app.post('/api/payments/webhook', express.raw({ type: '*/*', limit: '100kb' }), razorpayWebhook);
 app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
 // NOTE: /uploads is intentionally NOT served statically.
@@ -52,6 +56,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/employer', employerRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.use(notFound);

@@ -12,4 +12,13 @@ function createAuthLimiter(max = Number(process.env.AUTH_RATE_LIMIT_MAX) || 20, 
   });
 }
 
-module.exports = { createAuthLimiter };
+// Payment endpoints (order creation / verification), per client IP.
+function createPaymentLimiter(max = Number(process.env.PAYMENT_RATE_LIMIT_MAX) || 30, windowMs = 15 * 60 * 1000) {
+  return rateLimit({
+    windowMs, limit: max, standardHeaders: 'draft-7', legacyHeaders: false,
+    skip: () => process.env.NODE_ENV === 'test' && !process.env.FORCE_RATE_LIMIT,
+    handler: (_req, res) => res.status(429).json({ success: false, message: 'Too many payment requests. Please wait a few minutes.' }),
+  });
+}
+
+module.exports = { createAuthLimiter, createPaymentLimiter };

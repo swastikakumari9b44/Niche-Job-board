@@ -1,13 +1,14 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Briefcase, LayoutDashboard, ScrollText, ShieldCheck, Users } from "lucide-react";
+import { BarChart3, Briefcase, CreditCard, LayoutDashboard, ScrollText, ShieldCheck, Users } from "lucide-react";
 import RequireRole from "../RequireRole";
 
 const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/jobs", label: "Job moderation", icon: Briefcase },
+  { href: "/admin/payments", label: "Payments", icon: CreditCard },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/audit-log", label: "Audit log", icon: ScrollText },
 ];

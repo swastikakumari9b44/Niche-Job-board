@@ -5,6 +5,7 @@ const AuditLog = require('../models/AuditLog');
 const AppError = require('../utils/AppError');
 const { escapeRegex } = require('../utils/regex');
 const { recordAudit } = require('../services/audit');
+const { isFeaturedActive } = require('../utils/featured');
 const v = require('../validators/adminValidator');
 
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -112,12 +113,12 @@ exports.listJobs = asyncHandler(async (req, res) => {
   if (search) { const rx = new RegExp(escapeRegex(search), 'i'); filter.$or = [{ title: rx }, { company: rx }]; }
   const [jobs, total] = await Promise.all([
     Job.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit)
-      .select('title company nicheCategory location status moderation createdAt employerId').populate('employerId', 'name email status').lean(),
+      .select('title company nicheCategory location status moderation createdAt employerId isFeatured featuredUntil featuredPaymentId').populate('employerId', 'name email status').lean(),
     Job.countDocuments(filter),
   ]);
   const counts = await Application.aggregate([{ $match: { jobId: { $in: jobs.map((j) => j._id) } } }, { $group: { _id: '$jobId', n: { $sum: 1 } } }]);
   const byJob = new Map(counts.map((c) => [String(c._id), c.n]));
-  ok(res, 'Jobs retrieved', jobs.map((j) => ({ ...j, moderation: { status: 'none', ...j.moderation }, applications: byJob.get(String(j._id)) || 0 })), { pagination: pagination(page, limit, total) });
+  ok(res, 'Jobs retrieved', jobs.map(({ isFeatured, featuredPaymentId, featuredUntil, ...j }) => ({ ...j, moderation: { status: 'none', ...j.moderation }, featured: isFeaturedActive({ isFeatured, featuredPaymentId, featuredUntil, status: j.status, moderation: j.moderation }), applications: byJob.get(String(j._id)) || 0 })), { pagination: pagination(page, limit, total) });
 });
 
 const TRANSITIONS = {

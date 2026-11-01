@@ -20,6 +20,10 @@ export function formatSalary(s) {
   return s.min != null ? `${cur} ${n(s.min)}+` : `Up to ${cur} ${n(s.max)}`;
 }
 
+// Amounts are stored in paise (1/100 of a rupee).
+export const formatMoney = (paise, currency = "INR") =>
+  new Intl.NumberFormat("en-IN", { style: "currency", currency, maximumFractionDigits: 2 }).format((paise || 0) / 100);
+
 export const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 export const formatEmploymentType = (t) => (t ? t.split("-").map(capitalize).join("-") : "");
 

@@ -1,12 +1,17 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { FileText, Pencil, PlusCircle, XCircle } from "lucide-react";
+import { FileText, Pencil, PlusCircle, Star, XCircle } from "lucide-react";
 import { api, errorText, openResume } from "@/lib/api";
 import { useAsync } from "@/hooks/useAsync";
+import { useApi } from "@/hooks/useApi";
+import { useAuth } from "@/components/AuthProvider";
+import FeatureJobButton from "@/components/FeatureJobButton";
+import Pagination from "@/components/Pagination";
+import { PaymentStatusBadge } from "@/components/PaymentBits";
 import RequireRole from "@/components/RequireRole";
 import { Alert, Badge, EmptyState, ErrorState, PageShell, Spinner, StatusBadge } from "@/components/ui";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatMoney } from "@/lib/format";
 
 const STATUSES = ["Applied", "Shortlisted", "Rejected"];
 
@@ -45,6 +50,11 @@ function Dashboard() {
     const lists = await Promise.all(jobs.map((j) => api(`/api/applications/job/${j._id}`).then((r) => r.data)));
     return { jobs: jobs.map((j, i) => ({ ...j, applicants: lists[i].length })), applications: lists.flat().map((a) => ({ ...a, jobTitle: jobs.find((j) => j._id === a.jobId)?.title })) };
   });
+  const { user } = useAuth();
+  const { data: planData } = useApi("/api/payments/config"); // price/duration come from the server
+  const plan = planData?.data;
+  const [payPage, setPayPage] = useState(1);
+  const { data: payData, error: payError, reload: reloadPayments } = useApi(`/api/payments/my?page=${payPage}&limit=5`);
   const [filterJob, setFilterJob] = useState("");
   const [notice, setNotice] = useState(null);
   const [busyId, setBusyId] = useState(null);
@@ -88,7 +98,7 @@ function Dashboard() {
         {jobs.length === 0 ? <EmptyState title="You have not posted any jobs" message="Post your first role to start receiving applications." action={<Link href="/employer/post" className="btn-primary">Post a job</Link>} /> : (
           <div className="card overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-3">Title</th><th className="px-4 py-3">Category</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Applicants</th><th className="px-4 py-3">Posted</th><th className="px-4 py-3 text-right">Actions</th></tr></thead>
+              <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-3">Title</th><th className="px-4 py-3">Category</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Applicants</th><th className="px-4 py-3">Posted</th><th className="px-4 py-3">Promotion</th><th className="px-4 py-3 text-right">Actions</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {jobs.map((j) => (
                   <tr key={j._id}>
@@ -101,6 +111,13 @@ function Dashboard() {
                     <td className="px-4 py-3">{j.applicants}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-slate-600">{formatDate(j.createdAt)}</td>
                     <td className="px-4 py-3">
+                      {j.featured ? (
+                        <div><Badge tone="amber"><Star size={12} className="mr-1" aria-hidden="true" />Featured</Badge><div className="mt-1 text-xs text-slate-500">until {formatDate(j.featuredUntil)}</div></div>
+                      ) : j.status === "active" && (j.moderation?.status ?? "none") === "none" && plan ? (
+                        <FeatureJobButton job={j} plan={plan} user={user} onChange={() => { reload(); reloadPayments(); }} />
+                      ) : <span className="text-xs text-slate-400">-</span>}
+                    </td>
+                    <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
                         {j.moderation?.status !== "removed" && <Link href={`/employer/edit/${j._id}`} className="btn-secondary !px-3 !py-1.5"><Pencil size={14} aria-hidden="true" />Edit</Link>}
                         {j.status === "active" && j.moderation?.status !== "removed" && <button onClick={() => closeJob(j)} disabled={busyId === j._id} className="btn-danger !px-3 !py-1.5"><XCircle size={14} aria-hidden="true" />Close</button>}
@@ -112,6 +129,40 @@ function Dashboard() {
             </table>
           </div>
         )}
+      </section>
+
+      <section className="mt-10" aria-labelledby="pay-h">
+        <h2 id="pay-h" className="mb-3 text-xl font-semibold">My Payments</h2>
+        {payError ? <ErrorState message={payError.message} onRetry={reloadPayments} />
+          : !payData ? <p className="text-sm text-slate-500"><Spinner className="mr-2 inline" />Loading payments...</p>
+          : payData.data.length === 0 ? <EmptyState title="No payments yet" message="Feature a job to boost it to the top of search results. Regular listings are free." />
+          : (
+            <>
+              <div className="card overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-3">Job</th><th className="px-4 py-3">Amount</th><th className="px-4 py-3">Date</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Promotion starts</th><th className="px-4 py-3">Promotion ends</th></tr></thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {payData.data.map((p) => (
+                      <tr key={p._id} className="align-top">
+                        <td className="px-4 py-3 font-medium">{p.jobTitle}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">{formatMoney(p.amount, p.currency)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-slate-600">{formatDate(p.verifiedAt || p.createdAt)}</td>
+                        <td className="px-4 py-3">
+                          <PaymentStatusBadge status={p.status} />
+                          {p.status === "pending" && <p className="mt-1 max-w-48 text-xs text-slate-500">Waiting for Razorpay to confirm. This updates automatically.</p>}
+                          {p.status === "failed" && p.failureReason && <p className="mt-1 max-w-48 text-xs text-red-700">{p.failureReason}</p>}
+                          {p.needsReview && <p className="mt-1 max-w-48 text-xs text-amber-700">Paid, but the job could not be featured. Please contact support.</p>}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-slate-600">{p.featuredStartsAt ? formatDate(p.featuredStartsAt) : "-"}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-slate-600">{p.featuredEndsAt ? formatDate(p.featuredEndsAt) : "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <Pagination page={payData.pagination.page} pages={payData.pagination.pages} onChange={setPayPage} />
+            </>
+          )}
       </section>
 
       <section className="mt-10" aria-labelledby="apps-h">

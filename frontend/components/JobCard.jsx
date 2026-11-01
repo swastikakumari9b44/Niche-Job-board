@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2, CalendarDays, MapPin } from "lucide-react";
+import { Building2, CalendarDays, MapPin, Star } from "lucide-react";
 import { Badge } from "./ui";
 import { formatEmploymentType, formatSalary, timeAgo } from "@/lib/format";
 
@@ -7,12 +7,15 @@ export default function JobCard({ job }) {
   const salary = formatSalary(job.salaryRange);
   const skills = job.requiredSkills || [];
   return (
-    <article className="card flex flex-col p-5 transition hover:border-indigo-200 hover:shadow-md">
+    <article className={`card flex flex-col p-5 transition hover:shadow-md ${job.featured ? "border-amber-300 bg-amber-50/40 ring-1 ring-amber-200" : "hover:border-indigo-200"}`}>
       <div className="flex items-start justify-between gap-3">
         <h3 className="text-lg font-semibold text-slate-900">
           <Link href={`/jobs/${job._id}`} className="hover:text-indigo-600">{job.title}</Link>
         </h3>
-        <Badge tone="indigo" className="shrink-0">{job.nicheCategory}</Badge>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          {job.featured && <Badge tone="amber"><Star size={12} className="mr-1" aria-hidden="true" />Featured</Badge>}
+          <Badge tone="indigo">{job.nicheCategory}</Badge>
+        </div>
       </div>
       <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-slate-600">
         <div className="flex items-center gap-1.5"><Building2 size={15} aria-hidden="true" /><dt className="sr-only">Company</dt><dd>{job.company}</dd></div>

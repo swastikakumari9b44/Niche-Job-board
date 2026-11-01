@@ -1,6 +1,7 @@
 // Every route below requires a signed-in, non-suspended account whose STORED role is "admin".
 const router = require('express').Router();
 const ctrl = require('../controllers/adminController');
+const payments = require('../controllers/adminPaymentController');
 const { protect, requireRole } = require('../middleware/authMiddleware');
 const validateObjectId = require('../middleware/validateObjectId');
 
@@ -15,5 +16,7 @@ router.get('/jobs', ctrl.listJobs);
 router.patch('/jobs/:id/moderation', validateObjectId('id'), ctrl.moderateJob);
 router.get('/analytics/applications', ctrl.applicationAnalytics);
 router.get('/audit-logs', ctrl.listAuditLogs);
+router.get('/payments/summary', payments.paymentSummary);
+router.get('/payments', payments.listPayments);
 
 module.exports = router;
