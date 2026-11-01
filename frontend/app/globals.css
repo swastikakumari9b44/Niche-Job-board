@@ -22,11 +22,6 @@
   }
 }
 
-/* Hover lift for cards */
-@utility card-hover {
-  @apply transition duration-300 hover:-translate-y-1 hover:shadow-lg;
-}
-
 /* Respect users who turn off animations in their OS */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
