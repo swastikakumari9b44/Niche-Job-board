@@ -45,6 +45,7 @@ const PORT = process.env.PORT || 5000;
     if (err) return; // Express 5 passes listen errors here too; they are reported by the 'error' handler below
     console.log(`Server running on port ${PORT}`);
     console.log(`Allowed CORS origins: ${getAllowedOrigins().join(', ')}`);
+    require('./services/razorpay').logConfigStatus();
   });
   server.on('error', (err) => {
     fail(err.code === 'EADDRINUSE' ? `Port ${PORT} is already in use` : 'Server error', err,

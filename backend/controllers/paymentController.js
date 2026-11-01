@@ -25,7 +25,7 @@ exports.getConfig = (_req, res) => {
   const plan = featuredJob();
   res.json({
     success: true, message: 'Payment configuration',
-    data: { enabled: razorpay.isConfigured(), mode: razorpay.mode(), amount: plan.amount, currency: plan.currency, days: plan.days, keyId: razorpay.isConfigured() ? process.env.RAZORPAY_KEY_ID : null },
+    data: { enabled: razorpay.isConfigured(), mode: razorpay.mode(), amount: plan.amount, currency: plan.currency, days: plan.days, keyId: razorpay.isConfigured() ? razorpay.keyId() : null },
   });
 };
 
@@ -53,7 +53,7 @@ exports.createOrder = asyncHandler(async (req, res) => {
     if (payment.status === 'pending') throw new AppError('A payment for this job is already awaiting confirmation. Please wait a minute and refresh.', 409);
     return res.status(status).json({
       success: true, message: status === 201 ? 'Order created' : 'Existing order reused',
-      data: { paymentRecordId: payment._id, orderId: payment.razorpayOrderId, amount: payment.amount, currency: payment.currency, keyId: process.env.RAZORPAY_KEY_ID, jobTitle: job.title, days: payment.featuredDays },
+      data: { paymentRecordId: payment._id, orderId: payment.razorpayOrderId, amount: payment.amount, currency: payment.currency, keyId: razorpay.keyId(), jobTitle: job.title, days: payment.featuredDays },
     });
   };
 

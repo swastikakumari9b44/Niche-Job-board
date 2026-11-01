@@ -122,3 +122,24 @@ test('payment price and duration come from server configuration', () => {
   if (saved.p === undefined) delete process.env.FEATURED_PRICE_PAISE; else process.env.FEATURED_PRICE_PAISE = saved.p;
   if (saved.d === undefined) delete process.env.FEATURED_DAYS; else process.env.FEATURED_DAYS = saved.d;
 });
+
+test('keys pasted with spaces, newlines or quotes still work (common hosting-dashboard mistake)', () => {
+  const saved = { id: process.env.RAZORPAY_KEY_ID, sec: process.env.RAZORPAY_KEY_SECRET };
+  process.env.RAZORPAY_KEY_ID = ' "rzp_test_dummykey123"\n';
+  process.env.RAZORPAY_KEY_SECRET = '  \'test_key_secret_value_123\'  \n';
+  try {
+    assert.strictEqual(razorpay.keyId(), 'rzp_test_dummykey123');
+    assert.ok(razorpay.isConfigured());
+    const sig = crypto.createHmac('sha256', 'test_key_secret_value_123').update('order_A|pay_B').digest('hex');
+    assert.ok(razorpay.verifyCheckoutSignature({ orderId: 'order_A', paymentId: 'pay_B', signature: sig }));
+  } finally { process.env.RAZORPAY_KEY_ID = saved.id; process.env.RAZORPAY_KEY_SECRET = saved.sec; }
+});
+
+test('startup status line shows mode and warnings but never the secret', () => {
+  const logs = []; const { log, warn } = console;
+  console.log = (...a) => logs.push(a.join(' ')); console.warn = (...a) => logs.push(a.join(' '));
+  try { razorpay.logConfigStatus(); } finally { console.log = log; console.warn = warn; }
+  const text = logs.join('\n');
+  assert.match(text, /enabled in test mode/);
+  assert.ok(!text.includes(process.env.RAZORPAY_KEY_SECRET));
+});
