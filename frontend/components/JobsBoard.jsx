@@ -80,7 +80,15 @@ export default function JobsBoard() {
         ) : jobs.length === 0 ? (
           <EmptyState title="No jobs match your search" message="Try different keywords or remove some filters." action={filtersActive ? <button className="btn-secondary" onClick={reset}>Clear filters</button> : null} />
         ) : (
-          <div className={`grid gap-5 md:grid-cols-2 lg:grid-cols-3 ${loading ? "opacity-60" : ""}`}>{jobs.map((j) => <JobCard key={j._id} job={j} />)}</div>
+          <div className={`grid gap-5 md:grid-cols-2 lg:grid-cols-3 ${loading ? "opacity-60" : ""}`}>{jobs.map((j, i) => (
+  <div
+    key={j._id}
+    className="animate-fade-up"
+    style={{ animationDelay: `${i * 60}ms` }}
+  >
+    <JobCard job={j} />
+  </div>
+))}</div>
         )}
       </div>
       {data && <Pagination page={data.pagination.page} pages={data.pagination.pages} onChange={setPage} />}
