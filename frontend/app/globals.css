@@ -1,4 +1,25 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
 @theme {
+  --color-brand-50:  #f3f1fc;
+  --color-brand-100: #e6e3f9;
+  --color-brand-200: #cfc9f2;
+  --color-brand-400: #8b7fd6;
+  --color-brand-500: #6c5fc4;
+  --color-brand-600: #5b4db3;
+  --color-brand-700: #4a3e96;
+  --color-brand-900: #2a2360;
+
+  --color-page:  #e4ecfb;
+  --color-tint-lavender: #e7e5fb;
+  --color-tint-lilac:    #f4e5fb;
+  --color-tint-rose:     #fde6ec;
+  --color-tint-mint:     #dff5ea;
+
   --animate-fade-up: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-fade-in: fade-in 0.4s ease-out both;
   --animate-scale-in: scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -20,6 +41,61 @@
     0%, 100% { transform: translateY(0); }
     50%      { transform: translateY(-10px); }
   }
+}
+
+body {
+  background: var(--color-page);
+  color: #1e1b3a;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Buttons */
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-60;
+}
+@utility btn-primary {
+  @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-700;
+}
+@utility btn-secondary {
+  @apply btn bg-white text-brand-700 border border-brand-200 hover:bg-brand-50;
+}
+@utility btn-danger {
+  @apply btn bg-white text-red-600 border border-red-200 hover:bg-red-50;
+}
+
+/* Inputs */
+@utility input {
+  @apply block w-full rounded-full border border-transparent bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100;
+}
+textarea.input { border-radius: 1.25rem; }
+
+/* Cards */
+@utility card {
+  @apply rounded-3xl bg-white shadow-sm;
+}
+@utility card-tint-lavender { @apply rounded-2xl bg-tint-lavender p-4; }
+@utility card-tint-lilac    { @apply rounded-2xl bg-tint-lilac p-4; }
+@utility card-tint-rose     { @apply rounded-2xl bg-tint-rose p-4; }
+@utility card-promo         { @apply rounded-3xl bg-brand-600 p-6 text-white; }
+
+/* Badges */
+@utility badge {
+  @apply inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold;
+}
+@utility badge-success { @apply badge bg-emerald-500 text-white; }
+@utility badge-info    { @apply badge bg-brand-600 text-white; }
+@utility badge-danger  { @apply badge bg-rose-500 text-white; }
+
+/* Sidebar */
+@utility sidebar {
+  @apply bg-brand-600 text-white rounded-r-3xl;
+}
+@utility sidebar-link {
+  @apply flex items-center gap-3 rounded-l-full px-5 py-3 text-sm font-medium text-white/90 transition hover:bg-white/10;
+}
+@utility sidebar-link-active {
+  @apply sidebar-link bg-white text-brand-700 hover:bg-white;
 }
 
 /* Respect users who turn off animations in their OS */
