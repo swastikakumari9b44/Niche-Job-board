@@ -60,14 +60,12 @@ export default function Navbar() {
         }`}
       >
         {/* Logo wordmark */}
-        <Link href="/" className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-base font-extrabold text-white">
-            N
-          </span>
-          <span className="text-lg font-extrabold tracking-tight text-slate-900">
-            Niche<span className="text-brand-600">Hire</span>
-          </span>
-        </Link>
+       <Link href="/" className="flex items-center gap-2" aria-label="NicheHire home">
+  <img src="/logo.png" alt="" className="h-9 w-9 object-contain" />
+  <span className="text-lg font-extrabold tracking-tight text-slate-900">
+    Niche<span className="text-brand-600">Hire</span>
+  </span>
+</Link>
 
         {/* Desktop links */}
         <nav className="hidden items-center gap-1 md:flex">
