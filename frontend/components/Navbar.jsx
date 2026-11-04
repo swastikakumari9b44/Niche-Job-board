@@ -61,7 +61,7 @@ export default function Navbar() {
       >
         {/* Logo wordmark */}
        <Link href="/" className="flex items-center gap-2" aria-label="NicheHire home">
-  <img src="/logo.png" alt="" className="h-9 w-9 object-contain" />
+  <img src="icon.png" alt="" className="h-9 w-9 object-contain" />
   <span className="text-lg font-extrabold tracking-tight text-slate-900">
     Niche<span className="text-brand-600">Hire</span>
   </span>
