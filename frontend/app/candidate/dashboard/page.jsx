@@ -2,7 +2,7 @@
 import Link from "next/link";
 import RequireRole from "@/components/RequireRole";
 import CandidateOverview from "@/components/CandidateOverview";
-import CandidateInsights from "@/components/analytics/CandidateInsights";
+import CandidateInsights from "@/components/admin/analytics/CandidateInsights";
 import { errorText } from "@/lib/api";
 import { EmptyState, ErrorState, PageShell, Spinner, StatusBadge } from "@/components/ui";
 import { useApi } from "@/hooks/useApi";

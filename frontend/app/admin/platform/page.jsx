@@ -5,10 +5,10 @@ import { useApi } from "@/hooks/useApi";
 import { useCategories } from "@/hooks/useCategories";
 import { BarList } from "@/components/admin/Charts";
 import { PageHeader } from "@/components/admin/bits";
-import { COLORS, Donut, LineChart, StackedBars } from "@/components/analytics/Charts";
-import ExportButton from "@/components/analytics/ExportButton";
-import RangeFilter, { defaultRange, rangeError, rangeParams } from "@/components/analytics/RangeFilter";
-import { ChartSkeleton, Kpi, PageLoading, Section } from "@/components/analytics/bits";
+import { COLORS, Donut, LineChart, StackedBars } from "@/components/admin/analytics/Charts";
+import ExportButton from "@/components/admin/analytics/ExportButton";
+import RangeFilter, { defaultRange, rangeError, rangeParams } from "@/components/admin/analytics/RangeFilter";
+import { ChartSkeleton, Kpi, PageLoading, Section } from "@/components/admin/analytics/bits";
 import { ErrorState } from "@/components/ui";
 import { formatMoney } from "@/lib/format";
 

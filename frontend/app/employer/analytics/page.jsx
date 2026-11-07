@@ -6,11 +6,10 @@ import { errorText } from "@/lib/api";
 import { useApi } from "@/hooks/useApi";
 import RequireRole from "@/components/RequireRole";
 import { BarList } from "@/components/admin/Charts";
-import { COLORS, Donut, LineChart, StackedBars } from "@/components/analytics/Charts";
-import ExportButton from "@/components/analytics/ExportButton";
-import RangeFilter, { defaultRange, rangeError, rangeParams } from "@/components/analytics/RangeFilter";
-import { ChartSkeleton, Kpi, PageLoading, Section } from "@/components/analytics/bits";
-import { pctText } from "@/components/analytics/bits";
+import { COLORS, Donut, LineChart, StackedBars } from "@/components/admin/analytics/Charts";
+import ExportButton from "@/components/admin/analytics/ExportButton";
+import RangeFilter, { defaultRange, rangeError, rangeParams } from "@/components/admin/analytics/RangeFilter";
+import { ChartSkeleton, Kpi, PageLoading, Section, pctText } from "@/components/admin/analytics/bits";
 import { Badge, EmptyState, ErrorState, PageShell, StatusBadge } from "@/components/ui";
 import { formatDate, formatMoney } from "@/lib/format";
 

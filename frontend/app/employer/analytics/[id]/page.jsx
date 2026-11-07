@@ -6,10 +6,10 @@ import { ArrowLeft, Star } from "lucide-react";
 import { errorText } from "@/lib/api";
 import { useApi } from "@/hooks/useApi";
 import RequireRole from "@/components/RequireRole";
-import { COLORS, Donut, LineChart } from "@/components/analytics/Charts";
-import ExportButton from "@/components/analytics/ExportButton";
-import RangeFilter, { rangeError, rangeParams } from "@/components/analytics/RangeFilter";
-import { ChartSkeleton, Kpi, PageLoading, Section, pctText } from "@/components/analytics/bits";
+import { COLORS, Donut, LineChart } from "@/components/admin/analytics/Charts";
+import ExportButton from "@/components/admin/analytics/ExportButton";
+import RangeFilter, { rangeError, rangeParams } from "@/components/admin/analytics/RangeFilter";
+import { ChartSkeleton, Kpi, PageLoading, Section, pctText } from "@/components/admin/analytics/bits";
 import { EmptyState, ErrorState, PageShell, StatusBadge } from "@/components/ui";
 import { formatDate, formatMoney } from "@/lib/format";
 
