@@ -4,12 +4,13 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { api } from "@/lib/api";
 import { useApi } from "@/hooks/useApi";
+import { useToast } from "@/components/ToastProvider";
 import { useCategories } from "@/hooks/useCategories";
 import { useDebounced } from "@/hooks/useDebounced";
 import Pagination from "@/components/Pagination";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import { ModerationBadge, PageHeader, tableClasses as t } from "@/components/admin/bits";
-import { Alert, Badge, EmptyState, ErrorState, JobCardSkeleton, StatusBadge } from "@/components/ui";
+import { Badge, EmptyState, ErrorState, JobCardSkeleton, StatusBadge } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 
 const COPY = {
@@ -27,7 +28,7 @@ export default function AdminJobsPage() {
   const [moderation, setModeration] = useState("");
   const [page, setPage] = useState(1);
   const [dialog, setDialog] = useState(null); // { job, action }
-  const [notice, setNotice] = useState("");
+  const toast = useToast();
   const q = useDebounced(search.trim());
 
   const qs = new URLSearchParams({ page: String(page), limit: "10" });
@@ -41,7 +42,7 @@ export default function AdminJobsPage() {
 
   async function act(reason) {
     await api(`/api/admin/jobs/${dialog.job._id}/moderation`, { method: "PATCH", body: { action: dialog.action, reason } });
-    setNotice(`"${dialog.job.title}": ${COPY[dialog.action].label.toLowerCase()} done.`);
+    toast.success(`"${dialog.job.title}": ${COPY[dialog.action].label.toLowerCase()} done.`);
     setDialog(null);
     reload();
   }
@@ -49,7 +50,6 @@ export default function AdminJobsPage() {
   return (
     <>
       <PageHeader title="Job moderation" subtitle="Review listings, flag suspicious ones, and remove those that break the rules. Every action needs a reason and is audit-logged." />
-      {notice && <div className="mb-4"><Alert tone="green">{notice}</Alert></div>}
 
       <form role="search" onSubmit={(e) => e.preventDefault()} className="card mb-4 grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="relative">

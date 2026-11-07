@@ -46,6 +46,7 @@ const PORT = process.env.PORT || 5000;
     console.log(`Server running on port ${PORT}`);
     console.log(`Allowed CORS origins: ${getAllowedOrigins().join(', ')}`);
     require('./services/razorpay').logConfigStatus();
+    require('./services/email').logConfigStatus();
   });
   server.on('error', (err) => {
     fail(err.code === 'EADDRINUSE' ? `Port ${PORT} is already in use` : 'Server error', err,

@@ -14,7 +14,7 @@ function protect(req, _res, next) {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     if (!payload.id || !ROLES.includes(payload.role)) return next(new AppError('Invalid token', 401));
-    req.user = { id: String(payload.id), role: payload.role };
+    req.user = { id: String(payload.id), role: payload.role, iat: payload.iat };
     next();
   } catch {
     next(new AppError('Invalid or expired token', 401));
@@ -24,9 +24,13 @@ function protect(req, _res, next) {
 // Step 2 (database): the account must still exist and not be suspended. The stored role is authoritative,
 // so a suspended user's old cookie stops working immediately and a token can never grant a role the account lacks.
 async function loadActiveUser(req) {
-  const user = await User.findById(req.user.id).select('role status').lean();
+  const user = await User.findById(req.user.id).select('role status passwordChangedAt').lean();
   if (!user) throw new AppError('Account no longer exists', 401);
   if (user.status === 'suspended') throw new AppError('Your account has been suspended. Please contact support.', 403, 'ACCOUNT_SUSPENDED');
+  // A password reset signs out every session that was issued before it.
+  if (user.passwordChangedAt && req.user.iat < Math.floor(new Date(user.passwordChangedAt).getTime() / 1000)) {
+    throw new AppError('Your session has expired. Please sign in again.', 401);
+  }
   req.user.role = user.role;
 }
 

@@ -4,12 +4,14 @@ import { useRef, useState } from "react";
 import { CheckCircle2, FileUp } from "lucide-react";
 import { api, errorText } from "@/lib/api";
 import { useAuth } from "./AuthProvider";
+import { useToast } from "./ToastProvider";
 import { Alert, Spinner } from "./ui";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
 export default function ApplyPanel({ job }) {
   const { user, loading } = useAuth();
+  const toast = useToast();
   const fileRef = useRef(null);
   const [file, setFile] = useState(null);
   const [error, setError] = useState("");
@@ -36,8 +38,10 @@ export default function ApplyPanel({ job }) {
       form.append("resume", file);
       await api("/api/apply", { method: "POST", form });
       setDone(true);
+      toast.success("Application submitted successfully. We emailed you a confirmation.");
     } catch (err) {
       setError(errorText(err));
+      toast.error(errorText(err));
     } finally {
       setBusy(false);
     }

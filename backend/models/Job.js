@@ -43,6 +43,8 @@ const jobSchema = new mongoose.Schema(
 );
 
 jobSchema.index({ status: 1, nicheCategory: 1, createdAt: -1 });
+jobSchema.index({ nicheCategory: 1, createdAt: -1 }); // analytics by category
+jobSchema.index({ createdAt: -1 }); // posting trends
 
 module.exports = mongoose.model('Job', jobSchema);
 module.exports.NICHE_CATEGORIES = NICHE_CATEGORIES;

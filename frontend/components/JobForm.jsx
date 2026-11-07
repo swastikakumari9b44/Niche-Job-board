@@ -7,6 +7,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { cleanCustomFields, pickKnownFields, validateCustomFields } from "@/lib/customFields";
 import { formatEmploymentType } from "@/lib/format";
 import DynamicFields from "./DynamicFields";
+import { useToast } from "./ToastProvider";
 import Field from "./Field";
 import TagInput from "./TagInput";
 import { Alert, ErrorState, Spinner } from "./ui";
@@ -14,6 +15,7 @@ import { Alert, ErrorState, Spinner } from "./ui";
 // Used for both "Post a job" and "Edit job" (pass `job` to edit).
 export default function JobForm({ job }) {
   const { config, error: configError, loading: configLoading } = useCategories();
+  const toast = useToast();
   const editing = !!job;
   const [form, setForm] = useState(() => ({
     title: job?.title ?? "",
@@ -88,12 +90,14 @@ export default function JobForm({ job }) {
     try {
       const r = editing ? await api(`/api/jobs/${job._id}`, { method: "PATCH", body: payload }) : await api("/api/jobs", { method: "POST", body: payload });
       setSaved(r.data);
+      toast.success(editing ? "Job saved successfully." : "Job posted successfully. It is now live.");
       if (!editing) {
         setForm({ title: "", company: "", description: "", nicheCategory: "", location: "", employmentType: "", salaryMin: "", salaryMax: "", requiredSkills: [] });
         setCustomFields({});
       }
     } catch (err) {
       setApiError(errorText(err));
+      toast.error(errorText(err));
     } finally {
       setSubmitting(false);
     }

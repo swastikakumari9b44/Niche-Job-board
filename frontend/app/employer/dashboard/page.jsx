@@ -10,19 +10,13 @@ import FeatureJobButton from "@/components/FeatureJobButton";
 import Pagination from "@/components/Pagination";
 import { PaymentStatusBadge } from "@/components/PaymentBits";
 import RequireRole from "@/components/RequireRole";
+import EmployerOverview from "@/components/EmployerOverview";
+import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import { useToast } from "@/components/ToastProvider";
 import { Alert, Badge, EmptyState, ErrorState, PageShell, Spinner, StatusBadge } from "@/components/ui";
 import { formatDate, formatMoney } from "@/lib/format";
 
 const STATUSES = ["Applied", "Shortlisted", "Rejected"];
-
-function Stat({ label, value }) {
-  return (
-    <div className="card p-5">
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-1 text-3xl font-bold text-slate-900">{value}</p>
-    </div>
-  );
-}
 
 function MatchCell({ app }) {
   if (app.matchStatus !== "scored") {
@@ -56,11 +50,13 @@ function Dashboard() {
   const [payPage, setPayPage] = useState(1);
   const { data: payData, error: payError, reload: reloadPayments } = useApi(`/api/payments/my?page=${payPage}&limit=5`);
   const [filterJob, setFilterJob] = useState("");
-  const [notice, setNotice] = useState(null);
+  const toast = useToast();
+  const [closing, setClosing] = useState(null); // job awaiting close confirmation
+  const [ver, setVer] = useState(0); // bump to refresh the summary cards
   const [busyId, setBusyId] = useState(null);
 
   if (loading && !data) return <div className="py-20 text-center text-slate-500"><Spinner className="mr-2 inline" />Loading dashboard...</div>;
-  if (error) return <PageShell><ErrorState message={error.message} onRetry={reload} /></PageShell>;
+  if (error) return <PageShell><ErrorState message={errorText(error, "We could not load your dashboard. Please try again.")} onRetry={reload} /></PageShell>;
   if (!data) return null;
 
   const { jobs, applications } = data;
@@ -68,30 +64,24 @@ function Dashboard() {
 
   async function run(id, fn, okMsg) {
     setBusyId(id);
-    setNotice(null);
-    try { await fn(); setNotice({ tone: "green", text: okMsg }); reload(); }
-    catch (err) { setNotice({ tone: "red", text: errorText(err) }); }
+    try { await fn(); toast.success(okMsg); reload(); setVer((v) => v + 1); }
+    catch (err) { toast.error(errorText(err)); }
     finally { setBusyId(null); }
   }
-  const setStatus = (a, status) => run(a._id, () => api(`/api/applications/${a._id}/status`, { method: "PATCH", body: { status } }), "Application status updated.");
-  const closeJob = (j) => { if (window.confirm(`Close "${j.title}"? It will stop appearing in public listings. Applications are kept.`)) run(j._id, () => api(`/api/jobs/${j._id}`, { method: "DELETE" }), "Job closed."); };
-  const viewResume = (a) => openResume(a._id).catch((err) => setNotice({ tone: "red", text: errorText(err) }));
+  const setStatus = (a, status) => run(a._id, () => api(`/api/applications/${a._id}/status`, { method: "PATCH", body: { status } }), "Application status updated. The candidate was notified.");
+  const closeJob = (j) => setClosing(j);
+  const confirmClose = async () => { const j = closing; setClosing(null); await run(j._id, () => api(`/api/jobs/${j._id}`, { method: "DELETE" }), "Job closed successfully."); };
+  const viewResume = (a) => openResume(a._id).catch((err) => toast.error(errorText(err, "We could not open this resume. Please try again.")));
 
   return (
     <PageShell>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-bold text-slate-900">Employer dashboard</h1>
-        <Link href="/employer/post" className="btn-primary"><PlusCircle size={16} aria-hidden="true" />Post a job</Link>
+        <div className="flex flex-wrap gap-2"><Link href="/employer/analytics" className="btn-secondary">View analytics</Link><Link href="/employer/post" className="btn-primary"><PlusCircle size={16} aria-hidden="true" />Post a job</Link></div>
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat label="Total jobs" value={jobs.length} />
-        <Stat label="Active jobs" value={jobs.filter((j) => j.status === "active").length} />
-        <Stat label="Total applications" value={applications.length} />
-        <Stat label="Shortlisted" value={applications.filter((a) => a.status === "Shortlisted").length} />
-      </div>
+      <div className="mt-6"><EmployerOverview key={ver} /></div>
 
-      {notice && <div className="mt-6"><Alert tone={notice.tone}>{notice.text}</Alert></div>}
 
       <section className="mt-10" aria-labelledby="jobs-h">
         <h2 id="jobs-h" className="mb-3 text-xl font-semibold">Your jobs</h2>
@@ -202,6 +192,7 @@ function Dashboard() {
           </div>
         )}
       </section>
+      {closing && <ConfirmDialog title={`Close "${closing.title}"?`} message="It will stop appearing in public listings. Applications you already received are kept." confirmLabel="Close job" requireReason={false} onConfirm={confirmClose} onClose={() => setClosing(null)} />}
     </PageShell>
   );
 }

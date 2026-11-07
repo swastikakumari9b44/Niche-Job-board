@@ -1,6 +1,9 @@
 "use client";
 import Link from "next/link";
 import RequireRole from "@/components/RequireRole";
+import CandidateOverview from "@/components/CandidateOverview";
+import CandidateInsights from "@/components/analytics/CandidateInsights";
+import { errorText } from "@/lib/api";
 import { EmptyState, ErrorState, PageShell, Spinner, StatusBadge } from "@/components/ui";
 import { useApi } from "@/hooks/useApi";
 import { formatDate } from "@/lib/format";
@@ -12,8 +15,11 @@ function Applications() {
     <PageShell>
       <h1 className="text-3xl font-bold text-slate-900">My applications</h1>
       <p className="mb-6 mt-1 text-slate-600">Track where each application stands.</p>
+      <div className="mb-8"><CandidateOverview /></div>
+      <div className="mb-10"><CandidateInsights /></div>
+      <h2 className="mb-3 text-xl font-semibold">All applications</h2>
       {loading ? <p className="py-16 text-center text-slate-500"><Spinner className="mr-2 inline" />Loading...</p>
-        : error ? <ErrorState message={error.message} onRetry={reload} />
+        : error ? <ErrorState message={errorText(error)} onRetry={reload} />
         : apps.length === 0 ? <EmptyState title="No applications yet" message="When you apply to a job it will show up here." action={<Link href="/jobs" className="btn-primary">Browse jobs</Link>} />
         : (
           <div className="card overflow-x-auto">

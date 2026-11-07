@@ -2,6 +2,7 @@
 const router = require('express').Router();
 const ctrl = require('../controllers/adminController');
 const payments = require('../controllers/adminPaymentController');
+const analytics = require('../controllers/adminAnalyticsController');
 const { protect, requireRole } = require('../middleware/authMiddleware');
 const validateObjectId = require('../middleware/validateObjectId');
 
@@ -15,6 +16,10 @@ router.patch('/users/:id/status', validateObjectId('id'), ctrl.setUserStatus);
 router.get('/jobs', ctrl.listJobs);
 router.patch('/jobs/:id/moderation', validateObjectId('id'), ctrl.moderateJob);
 router.get('/analytics/applications', ctrl.applicationAnalytics);
+router.get('/analytics/platform', analytics.platform);
+router.get('/analytics/export/payments.csv', analytics.paymentsCsv);
+router.get('/analytics/export/summary.csv', analytics.summaryCsv);
+router.get('/analytics/export/jobs.csv', analytics.jobsCsv);
 router.get('/audit-logs', ctrl.listAuditLogs);
 router.get('/payments/summary', payments.paymentSummary);
 router.get('/payments', payments.listPayments);

@@ -115,10 +115,17 @@ const loginSchema = z.strictObject({
   password: z.string().min(1, 'Password is required').max(72),
 });
 
-// Only the name is editable. "role" is handled (403) in the controller before this runs.
-const updateProfileSchema = z.strictObject({
-  name: z.string().trim().min(1, 'Name cannot be empty').max(100),
-});
+// Editable profile fields. "role"/"status" are never accepted (role -> 403 in the controller, others -> 400 here).
+const updateProfileSchema = z
+  .strictObject({
+    name: z.string().trim().min(1, 'Name cannot be empty').max(100).optional(),
+    headline: z.string().trim().max(120, 'Keep it under 120 characters').optional(),
+    location: z.string().trim().max(100).optional(),
+    phone: z.string().trim().regex(/^$|^\+?[0-9 ()-]{7,20}$/, 'Enter a valid phone number').optional(),
+    companyName: z.string().trim().max(100).optional(),
+    notifyByEmail: z.boolean().optional(),
+  })
+  .refine((o) => Object.keys(o).length > 0, 'Nothing to update');
 
 module.exports = {
   createJobSchema, updateJobSchema, listJobsQuerySchema, applySchema, statusSchema,

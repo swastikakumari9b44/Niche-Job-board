@@ -5,13 +5,13 @@ import { Alert, Spinner } from "../ui";
 
 // Confirmation for destructive/administrative actions. Mount it only while it is open (state resets on each open).
 // onConfirm(reason) must return a promise; a rejection is shown inside the dialog and the dialog stays open.
-export default function ConfirmDialog({ title, message, confirmLabel = "Confirm", tone = "danger", reasonLabel = "Reason (recorded in the audit log)", onConfirm, onClose }) {
+export default function ConfirmDialog({ title, message, confirmLabel = "Confirm", tone = "danger", reasonLabel = "Reason (recorded in the audit log)", requireReason = true, onConfirm, onClose }) {
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const titleId = useId();
   const reasonId = useId();
-  const valid = reason.trim().length >= 5;
+  const valid = !requireReason || reason.trim().length >= 5;
 
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && !busy && onClose();
@@ -37,10 +37,10 @@ export default function ConfirmDialog({ title, message, confirmLabel = "Confirm"
       <form role="dialog" aria-modal="true" aria-labelledby={titleId} onSubmit={submit} className="card w-full max-w-md space-y-4 p-6 shadow-xl">
         <h2 id={titleId} className="text-lg font-semibold text-slate-900">{title}</h2>
         <p className="text-sm text-slate-600">{message}</p>
-        <div>
+        {requireReason && <div>
           <label htmlFor={reasonId} className="mb-1.5 block text-sm font-medium text-slate-800">{reasonLabel}</label>
           <textarea id={reasonId} autoFocus rows={3} maxLength={500} className="input" value={reason} onChange={(e) => setReason(e.target.value)} />
-        </div>
+        </div>}
         {error && <Alert>{error}</Alert>}
         <div className="flex justify-end gap-2">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={busy}>Cancel</button>

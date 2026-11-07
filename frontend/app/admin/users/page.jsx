@@ -4,6 +4,7 @@ import { Search } from "lucide-react";
 import { api } from "@/lib/api";
 import { useApi } from "@/hooks/useApi";
 import { useDebounced } from "@/hooks/useDebounced";
+import { useToast } from "@/components/ToastProvider";
 import { useAuth } from "@/components/AuthProvider";
 import Pagination from "@/components/Pagination";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
@@ -50,7 +51,7 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const [detailsId, setDetailsId] = useState(null);
   const [dialog, setDialog] = useState(null); // { user, next: "suspended" | "active" }
-  const [notice, setNotice] = useState("");
+  const toast = useToast();
   const q = useDebounced(search.trim());
 
   const qs = new URLSearchParams({ page: String(page), limit: "10" });
@@ -62,7 +63,7 @@ export default function AdminUsersPage() {
 
   async function changeStatus(reason) {
     await api(`/api/admin/users/${dialog.user._id}/status`, { method: "PATCH", body: { status: dialog.next, reason } });
-    setNotice(`${dialog.user.name}: account ${dialog.next === "suspended" ? "suspended" : "reactivated"}.`);
+    toast.success(`${dialog.user.name}: account ${dialog.next === "suspended" ? "suspended" : "reactivated"}.`);
     setDialog(null);
     reload();
   }
@@ -70,7 +71,6 @@ export default function AdminUsersPage() {
   return (
     <>
       <PageHeader title="Users" subtitle="Search, review and suspend or reactivate accounts." />
-      {notice && <div className="mb-4"><Alert tone="green">{notice}</Alert></div>}
 
       <form role="search" onSubmit={(e) => e.preventDefault()} className="card mb-4 grid gap-3 p-4 sm:grid-cols-3">
         <div className="relative">

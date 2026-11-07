@@ -25,5 +25,8 @@ const applicationSchema = new mongoose.Schema(
 // One application per candidate per job
 applicationSchema.index({ jobId: 1, candidateId: 1 }, { unique: true });
 applicationSchema.index({ candidateId: 1 });
+applicationSchema.index({ candidateId: 1, createdAt: -1 }); // candidate insights
+applicationSchema.index({ jobId: 1, createdAt: -1 }); // employer analytics (jobs -> applications over time)
+applicationSchema.index({ createdAt: -1 }); // platform analytics
 
 module.exports = mongoose.model('Application', applicationSchema);

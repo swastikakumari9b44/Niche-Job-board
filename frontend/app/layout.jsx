@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Manrope } from "next/font/google";
 import AuthProvider from "@/components/AuthProvider";
+import ToastProvider from "@/components/ToastProvider";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -16,9 +17,11 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`h-full ${manrope.variable}`}>
       <body className="flex min-h-full flex-col">
         <AuthProvider>
+          <ToastProvider>
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

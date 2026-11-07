@@ -78,6 +78,7 @@ export default function AuthForm({ mode }) {
           <Field id="email" label="Email" required error={errors.email}><input id="email" type="email" autoComplete="email" className="input" value={form.email} onChange={(e) => set("email", e.target.value)} aria-invalid={!!errors.email} /></Field>
           <Field id="password" label="Password" required error={errors.password} hint={isRegister ? "At least 8 characters." : undefined}><input id="password" type="password" autoComplete={isRegister ? "new-password" : "current-password"} className="input" value={form.password} onChange={(e) => set("password", e.target.value)} aria-invalid={!!errors.password} /></Field>
           {isRegister && <Field id="confirm" label="Confirm password" required error={errors.confirm}><input id="confirm" type="password" autoComplete="new-password" className="input" value={form.confirm} onChange={(e) => set("confirm", e.target.value)} aria-invalid={!!errors.confirm} /></Field>}
+          {!isRegister && <div className="-mt-2 text-right"><Link href="/forgot-password" className="text-sm font-medium text-indigo-600 hover:underline">Forgot password?</Link></div>}
           <button className="btn-primary w-full" disabled={busy}>{busy && <Spinner />}{isRegister ? "Create account" : "Log in"}</button>
         </form>
 

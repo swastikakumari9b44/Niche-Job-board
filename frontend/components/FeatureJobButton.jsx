@@ -4,6 +4,7 @@ import { Sparkles } from "lucide-react";
 import { api, errorText } from "@/lib/api";
 import { loadCheckout } from "@/lib/razorpay";
 import { formatMoney } from "@/lib/format";
+import { useToast } from "./ToastProvider";
 import { Spinner } from "./ui";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -13,9 +14,14 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export default function FeatureJobButton({ job, plan, user, onChange }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null); // { tone: "green" | "red" | "amber", text }
+  const toast = useToast();
   const alive = useRef(true);
   useEffect(() => () => { alive.current = false; }, []);
-  const say = (tone, text) => alive.current && setMsg({ tone, text });
+  const say = (tone, text) => {
+    if (alive.current) setMsg({ tone, text });
+    if (tone === "green") toast.success(text); // final outcomes also appear as a toast
+    if (tone === "red") toast.error(text);
+  };
 
   // After checkout the payment may still be "pending" for a few seconds until Razorpay confirms capture.
   async function waitForConfirmation(paymentId) {

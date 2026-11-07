@@ -13,6 +13,10 @@ const employerRoutes = require('./routes/employerRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const savedJobRoutes = require('./routes/savedJobRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 const { webhook: razorpayWebhook } = require('./controllers/paymentController');
 const { protect, requireRole } = require('./middleware/authMiddleware');
 const { applyToJob } = require('./controllers/applicationController');
@@ -28,6 +32,7 @@ app.use(
     credentials: true, // allow the browser to send the HttpOnly auth cookie from an allow-listed origin
     // Browsers must match the allow-list (any localhost port is also accepted outside production).
     origin: (origin, cb) => cb(null, isAllowedOrigin(origin)),
+    exposedHeaders: ['Content-Disposition', 'X-Export-Truncated'], // lets the frontend read CSV download headers
   })
 );
 // Razorpay webhook FIRST, with the raw body: its signature is computed over the exact bytes, so JSON parsing must not touch it.
@@ -57,6 +62,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/employer', employerRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/saved-jobs', savedJobRoutes);
+app.use('/api/analytics', analyticsRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.use(notFound);

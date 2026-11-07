@@ -24,6 +24,14 @@ export function formatSalary(s) {
 export const formatMoney = (paise, currency = "INR") =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency, maximumFractionDigits: 2 }).format((paise || 0) / 100);
 
+// Chart bucket keys: "2026-11-15" (day) or "2026-11" (month) -> readable labels.
+export function bucketLabel(key) {
+  const m = /^(\d{4})-(\d{2})(?:-(\d{2}))?$/.exec(key || "");
+  if (!m) return key;
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3] || 1)));
+  return d.toLocaleDateString("en-IN", m[3] ? { day: "numeric", month: "short", timeZone: "UTC" } : { month: "short", year: "numeric", timeZone: "UTC" });
+}
+
 export const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 export const formatEmploymentType = (t) => (t ? t.split("-").map(capitalize).join("-") : "");
 

@@ -5,6 +5,7 @@ import { ArrowLeft, Building2, CalendarDays, MapPin, Wallet } from "lucide-react
 import { useApi } from "@/hooks/useApi";
 import { useCategories } from "@/hooks/useCategories";
 import ApplyPanel from "@/components/ApplyPanel";
+import SaveJobButton from "@/components/SaveJobButton";
 import CustomFieldsView from "@/components/CustomFieldsView";
 import { Badge, EmptyState, ErrorState, Spinner } from "@/components/ui";
 import { formatDate, formatEmploymentType, formatSalary } from "@/lib/format";
@@ -39,7 +40,7 @@ export default function JobDetailsPage() {
         <div className="space-y-6 lg:col-span-2">
           <header className="card p-6">
             <div className="flex flex-wrap items-center gap-2">{job.featured && <Badge tone="amber">Featured</Badge>}<Badge tone="indigo">{job.nicheCategory}</Badge><Badge tone="blue">{formatEmploymentType(job.employmentType)}</Badge>{job.status === "closed" && <Badge tone="red">Closed</Badge>}</div>
-            <h1 className="mt-3 text-3xl font-bold text-slate-900">{job.title}</h1>
+            <div className="mt-3 flex flex-wrap items-start justify-between gap-3"><h1 className="text-3xl font-bold text-slate-900">{job.title}</h1><SaveJobButton jobId={job._id} /></div>
             <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
               <div className="flex items-center gap-1.5"><Building2 size={16} aria-hidden="true" /><dt className="sr-only">Company</dt><dd>{job.company}</dd></div>
               <div className="flex items-center gap-1.5"><MapPin size={16} aria-hidden="true" /><dt className="sr-only">Location</dt><dd>{job.location}</dd></div>

@@ -4,6 +4,7 @@ const User = require('../models/User');
 const AppError = require('../utils/AppError');
 const { registerSchema, loginSchema } = require('../validators/jobValidator');
 const { setAuthCookie, clearAuthCookie } = require('../utils/cookies');
+const events = require('../services/events');
 
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
@@ -26,6 +27,7 @@ exports.register = asyncHandler(async (req, res) => {
     if (err.code === 11000) throw new AppError('An account with this email already exists', 409);
     throw err;
   }
+  events.onRegistered(user); // background: an email problem can never fail registration
   setAuthCookie(res, signToken(user));
   res.status(201).json({ success: true, message: 'Registration successful', data: { user } }); // toJSON strips the hash
 });

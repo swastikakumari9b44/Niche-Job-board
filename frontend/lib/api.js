@@ -35,7 +35,8 @@ export async function api(path, { method = "GET", body, form } = {}) {
       body: form ?? (body !== undefined ? JSON.stringify(body) : undefined),
     });
   } catch {
-    throw new ApiError(`Cannot reach the API at ${apiBase()}. Start the backend (npm run dev in the backend folder), then check http://localhost:5000/api/health opens in your browser and NEXT_PUBLIC_API_URL is correct.`, 0);
+    console.error(`NicheHire: cannot reach the API at ${apiBase()}. Is the backend running and NEXT_PUBLIC_API_URL correct?`); // for developers only
+    throw new ApiError("We can't reach NicheHire right now. Please check your internet connection and try again.", 0);
   }
   const json = await res.json().catch(() => null);
   if (!res.ok || json?.success === false) {
@@ -53,9 +54,34 @@ export async function openResume(applicationId) {
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
+// Downloads a CSV report with the signed-in session (the cookie is sent; the file is never publicly reachable).
+export async function downloadCsv(path, fallbackName = "report.csv") {
+  let res;
+  try {
+    res = await fetch(`${apiBase()}${path}`, { credentials: "include" });
+  } catch {
+    throw new ApiError("We can't reach NicheHire right now. Please check your internet connection and try again.", 0);
+  }
+  if (!res.ok) {
+    const json = await res.json().catch(() => null);
+    throw new ApiError(json?.message || "We could not create the report. Please try again.", res.status, json?.errors, json?.code);
+  }
+  const name = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") || "")?.[1] || fallbackName;
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  return { truncated: res.headers.get("X-Export-Truncated") === "true" };
+}
+
 // Turns an ApiError into a readable string, including field messages from validation errors.
-export function errorText(err) {
+// User-facing text for a failed request. Server errors (500) never show technical wording; 4xx messages from the API are
+// written for users (validation, permissions) and are shown as they are.
+export function errorText(err, fallback = "Something went wrong on our side. Please try again in a moment.") {
   if (!err) return "";
+  if (err.status === 500 || err.status === undefined) return fallback;
+  if (err.status === 429) return "Too many attempts. Please wait a few minutes and try again.";
   const details = (err.errors || []).map((e) => (e.field ? `${e.field}: ${e.message}` : e.message));
   return details.length ? `${err.message}. ${details.join("; ")}` : err.message;
 }

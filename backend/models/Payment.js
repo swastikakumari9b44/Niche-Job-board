@@ -31,6 +31,8 @@ paymentSchema.index({ employerId: 1, jobId: 1, purpose: 1 }, { unique: true, par
 paymentSchema.index({ employerId: 1, createdAt: -1 });
 paymentSchema.index({ status: 1, createdAt: -1 });
 paymentSchema.index({ jobId: 1 });
+paymentSchema.index({ status: 1, verifiedAt: -1 }); // revenue by date (paid only)
+paymentSchema.index({ employerId: 1, status: 1 }); // employer spend
 
 module.exports = mongoose.model('Payment', paymentSchema);
 module.exports.OPEN = OPEN;

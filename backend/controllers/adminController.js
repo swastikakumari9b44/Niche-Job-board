@@ -6,6 +6,7 @@ const AppError = require('../utils/AppError');
 const { escapeRegex } = require('../utils/regex');
 const { recordAudit } = require('../services/audit');
 const { isFeaturedActive } = require('../utils/featured');
+const events = require('../services/events');
 const v = require('../validators/adminValidator');
 
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -100,6 +101,7 @@ exports.setUserStatus = asyncHandler(async (req, res) => {
     targetType: 'user', targetId: target._id, reason,
     metadata: { role: target.role, previousStatus: previous },
   });
+  events.onAccountStatus({ user: target, status, reason }); // tell the user (email + in-app), in the background
   ok(res, status === 'suspended' ? 'Account suspended' : 'Account reactivated', { _id: target._id, status: target.status });
 });
 
@@ -144,6 +146,7 @@ exports.moderateJob = asyncHandler(async (req, res) => {
   await job.save();
 
   await recordAudit(req, { action: rule.action, targetType: 'job', targetId: job._id, reason, metadata: { title: job.title, company: job.company, previousStatus } });
+  events.onJobModerated({ job, action, reason });
   ok(res, 'Job updated', { _id: job._id, status: job.status, moderation: job.moderation });
 });
 

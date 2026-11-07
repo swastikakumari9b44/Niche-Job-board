@@ -12,12 +12,20 @@ const userSchema = new mongoose.Schema({
   // Accounts created before moderation existed have no status; every check treats a missing status as 'active'.
   status: { type: String, enum: ['active', 'suspended'], default: 'active' },
   statusReason: { type: String, trim: true, maxlength: 500 },
+  // Optional profile details (used for profile-completion guidance)
+  headline: { type: String, trim: true, maxlength: 120 },
+  location: { type: String, trim: true, maxlength: 100 },
+  phone: { type: String, trim: true, maxlength: 20 },
+  companyName: { type: String, trim: true, maxlength: 100 }, // employers
+  notifyByEmail: { type: Boolean, default: true }, // false = only essential emails (receipts, security, welcome)
+  passwordChangedAt: Date, // sessions issued before this moment are rejected (set on password reset)
   statusChangedAt: Date,
   statusChangedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 },
 { timestamps: true });
 
 userSchema.index({ role: 1, status: 1, createdAt: -1 });
+userSchema.index({ createdAt: -1 }); // registration trends
 
 // Hash only when the password changed.
 userSchema.pre('save', async function () {

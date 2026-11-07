@@ -4,6 +4,7 @@
 const Payment = require('../models/Payment');
 const Job = require('../models/Job');
 const { isFeaturedActive } = require('../utils/featured');
+const events = require('./events');
 
 const DAY = 864e5;
 
@@ -14,7 +15,8 @@ function matchesRecord(payment, rp) {
 
 async function markFailed(payment, reason) {
   // 'paid' is terminal: a late "failed" event must never undo a confirmed payment.
-  await Payment.updateOne({ _id: payment._id, status: { $in: ['created', 'pending'] } }, { $set: { status: 'failed', failureReason: String(reason || 'Payment failed').slice(0, 300) } });
+  const r = await Payment.updateOne({ _id: payment._id, status: { $in: ['created', 'pending'] } }, { $set: { status: 'failed', failureReason: String(reason || 'Payment failed').slice(0, 300) } });
+  if (r.modifiedCount) events.onPaymentFailed(payment); // only the request that really failed it notifies
 }
 
 // Switch the featured placement on, once. Safe to call repeatedly.
@@ -48,7 +50,12 @@ async function confirmPaid(payment, razorpayPaymentId) {
     { $set: { status: 'paid', razorpayPaymentId, verifiedAt: new Date() }, $unset: { failureReason: 1 } },
     { new: true }
   );
-  if (paid) await activate(paid);
+  if (paid) {
+    await activate(paid);
+    const fresh = await Payment.findById(paid._id);
+    events.onPaymentSucceeded(fresh);
+    if (!fresh.activatedAt && fresh.activationNote) events.onPaymentNeedsReview(fresh);
+  }
   else if (payment.status === 'paid' && !payment.activatedAt && !payment.activationNote) await activate(payment); // recover from a crash between the two steps
   return { payment: await Payment.findById(payment._id), newlyPaid: !!paid };
 }

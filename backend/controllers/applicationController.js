@@ -6,6 +6,7 @@ const { applySchema, statusSchema } = require('../validators/jobValidator');
 const { uploadResume, hasPdfSignature, removeFile, pathFor } = require('../middleware/uploadMiddleware');
 const { extractPdfText } = require('../services/resumeParser');
 const { scoreResume } = require('../services/skillMatcher');
+const events = require('../services/events');
 
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 const parseUpload = (req, res) => new Promise((resolve, reject) => uploadResume(req, res, (err) => (err ? reject(err) : resolve())));
@@ -23,7 +24,7 @@ exports.applyToJob = asyncHandler(async (req, res) => {
 
     if (!(await hasPdfSignature(filePath))) throw new AppError('File is not a valid PDF', 400);
 
-    const job = await Job.findById(jobId).select('status requiredSkills');
+    const job = await Job.findById(jobId).select('status requiredSkills title company employerId');
     if (!job) throw new AppError('Job not found', 404);
     if (job.status !== 'active') throw new AppError('This job is closed', 400);
 
@@ -61,6 +62,7 @@ exports.applyToJob = asyncHandler(async (req, res) => {
       throw err;
     }
     filePath = null; // keep the file: the application now owns it
+    events.onApplicationSubmitted({ application, job, candidate }); // background notifications
     // Employer-side match analysis and the internal file name are not returned to the candidate
     const { resumeUrl: _f, matchScore: _s, matchedSkills: _m, missingSkills: _x, extractedSkills: _e, matchStatus: _t, ...safe } = application.toObject();
     res.status(201).json({ success: true, message: 'Application submitted successfully', data: safe });
@@ -93,11 +95,12 @@ exports.updateApplicationStatus = asyncHandler(async (req, res) => {
   const { status } = statusSchema.parse(req.body);
   const application = await Application.findById(req.params.id);
   if (!application) throw new AppError('Application not found', 404);
-  const job = await Job.findById(application.jobId).select('employerId');
+  const job = await Job.findById(application.jobId).select('employerId title company');
   if (!job || String(job.employerId) !== req.user.id) throw new AppError('You do not own this job', 403);
-  application.status = status;
-  await application.save();
-  const { resumeUrl, ...safe } = application.toObject();
+  // Atomic: only the request that really changes the status wins, so double clicks notify the candidate once.
+  const updated = await Application.findOneAndUpdate({ _id: application._id, status: { $ne: status } }, { $set: { status } }, { new: true });
+  if (updated) events.onStatusChanged({ application: updated, job, status });
+  const { resumeUrl, ...safe } = (updated || application).toObject();
   res.json({ success: true, message: 'Application status updated', data: safe });
 });
 
