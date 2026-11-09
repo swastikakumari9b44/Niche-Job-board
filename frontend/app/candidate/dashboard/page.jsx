@@ -22,7 +22,7 @@ function Applications() {
         : error ? <ErrorState message={errorText(error)} onRetry={reload} />
         : apps.length === 0 ? <EmptyState title="No applications yet" message="When you apply to a job it will show up here." action={<Link href="/jobs" className="btn-primary">Browse jobs</Link>} />
         : (
-          <div className="card overflow-x-auto">
+          <div className="card relative overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-3">Job</th><th className="px-4 py-3">Company</th><th className="px-4 py-3">Applied on</th><th className="px-4 py-3">Status</th></tr></thead>
               <tbody className="divide-y divide-slate-100">

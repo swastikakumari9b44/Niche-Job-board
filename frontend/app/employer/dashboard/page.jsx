@@ -40,9 +40,14 @@ function MatchCell({ app }) {
 
 function Dashboard() {
   const { data, loading, error, reload } = useAsync("employer-dashboard", async () => {
-    const jobs = (await api("/api/employer/jobs")).data;
-    const lists = await Promise.all(jobs.map((j) => api(`/api/applications/job/${j._id}`).then((r) => r.data)));
-    return { jobs: jobs.map((j, i) => ({ ...j, applicants: lists[i].length })), applications: lists.flat().map((a) => ({ ...a, jobTitle: jobs.find((j) => j._id === a.jobId)?.title })) };
+    // Two requests in total, however many jobs there are (this used to send one extra request per job).
+    const [jobsRes, appsRes] = await Promise.all([api("/api/employer/jobs"), api("/api/employer/applications")]);
+    const counts = appsRes.meta?.countsByJob || {};
+    return {
+      jobs: jobsRes.data.map((j) => ({ ...j, applicants: counts[j._id] || 0 })),
+      applications: appsRes.data,
+      truncated: !!appsRes.meta?.truncated,
+    };
   });
   const { user } = useAuth();
   const { data: planData } = useApi("/api/payments/config"); // price/duration come from the server
@@ -86,7 +91,7 @@ function Dashboard() {
       <section className="mt-10" aria-labelledby="jobs-h">
         <h2 id="jobs-h" className="mb-3 text-xl font-semibold">Your jobs</h2>
         {jobs.length === 0 ? <EmptyState title="You have not posted any jobs" message="Post your first role to start receiving applications." action={<Link href="/employer/post" className="btn-primary">Post a job</Link>} /> : (
-          <div className="card overflow-x-auto">
+          <div className="card relative overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-3">Title</th><th className="px-4 py-3">Category</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Applicants</th><th className="px-4 py-3">Posted</th><th className="px-4 py-3">Promotion</th><th className="px-4 py-3 text-right">Actions</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
@@ -128,7 +133,7 @@ function Dashboard() {
           : payData.data.length === 0 ? <EmptyState title="No payments yet" message="Feature a job to boost it to the top of search results. Regular listings are free." />
           : (
             <>
-              <div className="card overflow-x-auto">
+              <div className="card relative overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-3">Job</th><th className="px-4 py-3">Amount</th><th className="px-4 py-3">Date</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Promotion starts</th><th className="px-4 py-3">Promotion ends</th></tr></thead>
                   <tbody className="divide-y divide-slate-100">
@@ -167,8 +172,9 @@ function Dashboard() {
           </div>
         </div>
         <p className="mb-3 text-xs text-slate-500">Skill coverage compares the resume text with the job&apos;s required skills. It is a review aid, not a decision.</p>
+        {data.truncated && <p className="mb-2 text-xs text-slate-500">Showing your 500 most recent applications.</p>}
         {shown.length === 0 ? <EmptyState title="No applicants yet" message="Applications for your jobs will appear here." /> : (
-          <div className="card overflow-x-auto">
+          <div className="card relative overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-3">Candidate</th><th className="px-4 py-3">Job</th><th className="px-4 py-3">Applied</th><th className="px-4 py-3">Skill match</th><th className="px-4 py-3">Resume</th><th className="px-4 py-3">Status</th></tr></thead>
               <tbody className="divide-y divide-slate-100">

@@ -1,12 +1,14 @@
 require('dotenv').config();
 const { validateEnv, getAllowedOrigins } = require('./config/env');
 const connectDB = require('./config/db');
+const { logError } = require('./utils/logger');
+const { createShutdown } = require('./services/shutdown');
 
 // Print a startup failure in a way that is never lost, then let the process end by itself
 // (calling process.exit() right after console.error can drop the message on Windows terminals).
 function fail(title, err, hints = []) {
   console.error(`\n[startup error] ${title}`);
-  if (err?.message) console.error(`  Reason: ${err.message}`);
+  if (err?.message) console.error(`  Reason: ${require('./utils/logger').redact(err.message)}`);
   for (const h of hints) console.error(`  - ${h}`);
   console.error('');
   process.exitCode = 1;
@@ -23,12 +25,12 @@ function mongoHints(err) {
   return ['Check MONGO_URI in backend/.env.'];
 }
 
-process.on('unhandledRejection', (reason) => fail('Unhandled error', reason instanceof Error ? reason : new Error(String(reason))));
+process.on('unhandledRejection', (reason) => logError('Unhandled promise rejection', reason instanceof Error ? reason : new Error(String(reason))));
 
 try {
-  validateEnv(); // fails fast with a clear message if .env is not configured
+  for (const w of validateEnv()) console.warn(`[config warning] ${w}`); // fails fast with a clear message if the environment is not configured
 } catch (err) {
-  fail('Environment is not configured', err, ['Open backend/.env and make sure MONGO_URI and JWT_SECRET are set (see .env.example).']);
+  fail('Environment is not configured', err, ['Fix the items above in backend/.env (or the Render environment) and start again. See .env.example.']);
   return;
 }
 
@@ -48,6 +50,21 @@ const PORT = process.env.PORT || 5000;
     require('./services/razorpay').logConfigStatus();
     require('./services/email').logConfigStatus();
   });
+  // Render's load balancer reuses idle connections; Node's default keep-alive (5 s) closes them first, which shows up as random 502s.
+  server.keepAliveTimeout = Number(process.env.KEEP_ALIVE_TIMEOUT_MS) || 120000;
+  server.headersTimeout = server.keepAliveTimeout + 5000; // must be larger than keepAliveTimeout
+  server.requestTimeout = 60000; // slow/stalled uploads are cut off
+
+  const mongooseLib = require('mongoose');
+  const shutdown = createShutdown({
+    server,
+    disconnect: () => mongooseLib.disconnect(),
+    drain: (ms) => require('./services/notifier').drain(ms),
+  });
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('uncaughtException', (err) => { logError('Uncaught exception', err); shutdown('uncaughtException', 1); });
+
   server.on('error', (err) => {
     fail(err.code === 'EADDRINUSE' ? `Port ${PORT} is already in use` : 'Server error', err,
       err.code === 'EADDRINUSE' ? [`Another copy of the backend (or another program) is using port ${PORT}. Close the other terminal, or change PORT in .env.`] : []);

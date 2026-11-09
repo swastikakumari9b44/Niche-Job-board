@@ -5,6 +5,7 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const email = require('./email');
+const { logError } = require('../utils/logger');
 
 const pending = new Set();
 const track = (promise) => { pending.add(promise); promise.finally(() => pending.delete(promise)); return promise; };
@@ -32,7 +33,7 @@ async function deliver({ userId, type, title, message, link, dedupeKey, mail, es
     await Notification.updateOne({ _id: doc._id }, { $set: { emailStatus: status, ...(error && { emailError: error }) } });
     return { created: true, emailStatus: status };
   } catch (err) {
-    console.error(`Notification failed (${type}): ${err.message}`);
+    logError(`Notification failed (${type})`, err);
     return { error: true };
   }
 }
@@ -45,12 +46,21 @@ async function notifyAdmins(base) {
     const admins = await User.find({ role: 'admin', status: { $ne: 'suspended' } }).select('_id').lean();
     return Promise.all(admins.map((a) => notify({ ...base, userId: a._id, dedupeKey: base.dedupeKey && `${base.dedupeKey}:${a._id}` })));
   } catch (err) {
-    console.error(`Admin notification failed: ${err.message}`);
+    logError('Admin notification failed', err);
     return [];
   }
 }
 
 // Run any background task (e.g. a password-reset email) so it never blocks or fails the request.
-const background = (fn) => track(Promise.resolve().then(fn).catch((err) => console.error(`Background task failed: ${err.message}`)));
+const background = (fn) => track(Promise.resolve().then(fn).catch((err) => logError('Background task failed', err)));
 
-module.exports = { notify, notifyAdmins, background, idle };
+// Used by graceful shutdown: wait for in-flight e-mail/notification jobs, but never longer than timeoutMs.
+async function drain(timeoutMs = 8000) {
+  const timedOut = Symbol('timeout');
+  let timer;
+  const result = await Promise.race([idle().then(() => 'drained'), new Promise((r) => { timer = setTimeout(() => r(timedOut), timeoutMs); })]);
+  clearTimeout(timer);
+  return result === timedOut ? { drained: false, pending: pending.size } : { drained: true, pending: 0 };
+}
+
+module.exports = { notify, notifyAdmins, background, idle, drain };

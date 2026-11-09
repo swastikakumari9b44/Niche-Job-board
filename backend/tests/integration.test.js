@@ -158,10 +158,12 @@ describe('MongoDB integration', { skip }, () => {
   });
 
   test('failed applications leave no files behind', async () => {
-    const before = fs.readdirSync(UPLOAD_DIR).length;
+    const files = () => mongoose.connection.db.collection('resumes.files').countDocuments();
+    const before = fs.readdirSync(UPLOAD_DIR).length, storedBefore = await files();
     await call('/api/apply', { method: 'POST', who: 'cand', form: pdfForm({ jobId: 'c'.repeat(24) }) }); // 404 after upload
     await call('/api/apply', { method: 'POST', who: 'cand', form: pdfForm({ jobId, matchScore: '99' }) }); // 400 after upload
-    assert.strictEqual(fs.readdirSync(UPLOAD_DIR).length, before);
+    assert.strictEqual(fs.readdirSync(UPLOAD_DIR).length, before); // nothing is ever written to local disk
+    assert.strictEqual(await files(), storedBefore); // and no orphan files in persistent storage
   });
 
   test('apply succeeds: saved in MongoDB, skill coverage computed server-side, duplicate 409', async () => {
@@ -172,8 +174,8 @@ describe('MongoDB integration', { skip }, () => {
     assert.strictEqual(saved.matchScore, 80); // Python, PyTorch, SQL, AWS of 5
     assert.deepStrictEqual([...saved.matchedSkills], ['Python', 'PyTorch', 'SQL', 'AWS']);
     assert.deepStrictEqual([...saved.missingSkills], ['Docker']);
-    assert.match(saved.resumeUrl, /^[a-f0-9-]{36}\.pdf$/);
-    assert.ok(fs.existsSync(path.join(UPLOAD_DIR, saved.resumeUrl)));
+    assert.match(saved.resumeUrl, /^gridfs:[a-f0-9]{24}$/); // persistent storage (MongoDB GridFS), not local disk
+    assert.ok(await mongoose.connection.db.collection('resumes.files').findOne({ _id: new mongoose.Types.ObjectId(saved.resumeUrl.slice(7)) }));
     assert.strictEqual(r.body.data.candidateEmail, E('cand'));
     assert.strictEqual((await call('/api/applications', { method: 'POST', who: 'cand', form: pdfForm({ jobId }) })).status, 409); // alias route too
     assert.strictEqual((await call('/api/apply', { method: 'POST', who: 'cand', form: pdfForm({ jobId }) })).status, 409);

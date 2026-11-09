@@ -5,7 +5,7 @@ const { profileCompletion } = require('../utils/profile');
 
 const withCompletion = (user) => ({ ...user.toJSON(), profileCompletion: profileCompletion(user) });
 
-const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+const asyncHandler = require('../utils/asyncHandler');
 
 exports.getMe = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id);

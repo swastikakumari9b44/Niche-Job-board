@@ -5,7 +5,7 @@ const { escapeRegex } = require('../utils/regex');
 const { featuredActiveExpr } = require('../utils/featured');
 const v = require('../validators/paymentValidator');
 
-const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+const asyncHandler = require('../utils/asyncHandler');
 
 // GET /api/admin/payments?status=&search=&page=&limit=   (read-only: there is deliberately no "mark as paid")
 exports.listPayments = asyncHandler(async (req, res) => {

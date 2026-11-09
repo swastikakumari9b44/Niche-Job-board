@@ -6,7 +6,7 @@ const SavedJob = require('../models/SavedJob');
 const { featuredActiveExpr } = require('../utils/featured');
 const { profileCompletion } = require('../utils/profile');
 
-const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+const asyncHandler = require('../utils/asyncHandler');
 const byStatus = (rows) => ({ Applied: 0, Shortlisted: 0, Rejected: 0, ...Object.fromEntries(rows.map((r) => [r._id, r.count])) });
 const respond = (res, data) => { res.set('Cache-Control', 'no-store'); res.json({ success: true, message: 'Dashboard retrieved', data }); };
 

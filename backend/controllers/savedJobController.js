@@ -3,7 +3,7 @@ const SavedJob = require('../models/SavedJob');
 const AppError = require('../utils/AppError');
 const { isFeaturedActive } = require('../utils/featured');
 
-const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+const asyncHandler = require('../utils/asyncHandler');
 const notRemoved = (j) => j && (j.moderation?.status ?? 'none') !== 'removed';
 const visible = (j) => notRemoved(j) && j.status === 'active';
 

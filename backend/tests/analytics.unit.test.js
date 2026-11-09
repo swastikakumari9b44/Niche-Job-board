@@ -13,8 +13,9 @@ const v = require('../validators/analyticsValidator');
 const IDS = { candidate: 'a'.repeat(24), employer: 'b'.repeat(24), admin: 'c'.repeat(24) };
 const accounts = Object.fromEntries(Object.entries(IDS).map(([role, id]) => [id, { _id: id, role, status: 'active' }]));
 const realFind = User.findById;
+require('../models/Session').exists = async () => ({ _id: 'stub-session' }); // unit tests have no database: every token's session counts as live
 User.findById = (id) => { const d = accounts[String(id)] || null; return Object.assign(Promise.resolve(d), { select: () => ({ lean: () => Promise.resolve(d) }) }); };
-const auth = (role) => ({ authorization: `Bearer ${jwt.sign({ id: IDS[role], role }, process.env.JWT_SECRET, { expiresIn: '1h' })}` });
+const auth = (role) => ({ authorization: `Bearer ${jwt.sign({ id: IDS[role], role, jti: 'test-jti' }, process.env.JWT_SECRET, { expiresIn: '1h' })}` });
 let server, base;
 before(() => new Promise((r) => { server = app.listen(0, () => { base = `http://127.0.0.1:${server.address().port}`; r(); }); }));
 after(() => { server.close(); User.findById = realFind; });

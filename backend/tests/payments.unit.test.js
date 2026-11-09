@@ -16,8 +16,9 @@ const { isFeaturedActive } = require('../utils/featured');
 const IDS = { candidate: 'a'.repeat(24), employer: 'b'.repeat(24), admin: 'c'.repeat(24) };
 const accounts = Object.fromEntries(Object.entries(IDS).map(([role, id]) => [id, { _id: id, role, status: 'active' }]));
 const realFind = User.findById;
+require('../models/Session').exists = async () => ({ _id: 'stub-session' }); // unit tests have no database: every token's session counts as live
 User.findById = (id) => { const d = accounts[String(id)] || null; return Object.assign(Promise.resolve(d), { select: () => ({ lean: () => Promise.resolve(d) }) }); };
-const token = (role) => jwt.sign({ id: IDS[role], role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+const token = (role) => jwt.sign({ id: IDS[role], role, jti: 'test-jti' }, process.env.JWT_SECRET, { expiresIn: '1h' });
 const auth = (role) => ({ authorization: `Bearer ${token(role)}` });
 
 let server, base;

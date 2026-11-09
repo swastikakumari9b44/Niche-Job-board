@@ -27,7 +27,7 @@ export const PageHeader = ({ title, subtitle, children }) => (
 
 // Shared text-search + filter bar that debounces typing.
 export const tableClasses = {
-  wrap: "card overflow-x-auto",
+  wrap: "card relative overflow-x-auto",
   table: "w-full text-left text-sm",
   head: "border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500",
   body: "divide-y divide-slate-100",

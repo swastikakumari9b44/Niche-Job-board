@@ -15,12 +15,13 @@ const ID = 'a'.repeat(24);
 // so these unit tests stub that single lookup instead of needing MongoDB.
 const IDS = { candidate: ID, employer: 'b'.repeat(24), admin: 'c'.repeat(24) };
 const accounts = Object.fromEntries(Object.entries(IDS).map(([role, id]) => [id, { _id: id, role, status: 'active', name: role, email: `${role}@example.com` }]));
+require('../models/Session').exists = async () => ({ _id: 'stub-session' }); // unit tests have no database: every token's session counts as live
 const realFindById = User.findById;
 User.findById = (id) => {
   const doc = accounts[String(id)] || null;
   return Object.assign(Promise.resolve(doc), { select: () => ({ lean: () => Promise.resolve(doc) }) });
 };
-const token = (role) => jwt.sign({ id: IDS[role], role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+const token = (role) => jwt.sign({ id: IDS[role], role, jti: 'test-jti' }, process.env.JWT_SECRET, { expiresIn: '1h' });
 const call = (path, opts = {}) =>
   fetch(base + path, { ...opts, headers: { 'content-type': 'application/json', ...(opts.headers || {}) } });
 
@@ -95,7 +96,7 @@ test('protected endpoints return 401 without a token', async () => {
 });
 
 test('invalid or wrongly signed tokens return 401', async () => {
-  const bad = jwt.sign({ id: ID, role: 'employer' }, 'other-secret-other-secret');
+  const bad = jwt.sign({ id: ID, role: 'employer', jti: 'test-jti' }, 'other-secret-other-secret');
   const res = await call('/api/jobs', { method: 'POST', body: '{}', headers: { authorization: `Bearer ${bad}` } });
   assert.strictEqual(res.status, 401);
 });
@@ -162,7 +163,7 @@ test('admin API: 401 without a token, 403 for candidates and employers, never re
 });
 
 test('a token claiming "admin" for an account that is not an admin is refused (database role wins)', async () => {
-  const forged = jwt.sign({ id: IDS.candidate, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  const forged = jwt.sign({ id: IDS.candidate, role: 'admin', jti: 'test-jti' }, process.env.JWT_SECRET, { expiresIn: '1h' });
   const r = await call('/api/admin/stats', { headers: { authorization: `Bearer ${forged}` } });
   assert.strictEqual(r.status, 403);
 });

@@ -98,7 +98,9 @@ describe('Admin panel (MongoDB)', { skip }, () => {
     assert.strictEqual((await call('/api/admin/stats', { who: 'cand' })).status, 403);
     assert.strictEqual((await call('/api/admin/users', { who: 'emp' })).status, 403);
     assert.strictEqual((await call(`/api/admin/users/${ids.cand}/status`, { method: 'PATCH', who: 'emp', body: { status: 'suspended', reason } })).status, 403);
-    const forged = jwt.sign({ id: ids.cand, role: 'admin' }, process.env.JWT_SECRET);
+    const jti = require('crypto').randomUUID();
+    await require('../models/Session').create({ jti, userId: ids.cand, expiresAt: new Date(Date.now() + 36e5) }); // a live session, but the token lies about the role
+    const forged = jwt.sign({ id: ids.cand, role: 'admin', jti }, process.env.JWT_SECRET);
     jar.forged = `token=${forged}`;
     assert.strictEqual((await call('/api/admin/stats', { who: 'forged' })).status, 403);
     assert.strictEqual((await call('/api/admin/users/not-an-id', { who: 'admin' })).status, 400);

@@ -24,8 +24,8 @@ export default function EmployerOverview() {
         <Stat label="Awaiting review" value={applications.awaitingReview} tone={applications.awaitingReview ? "text-amber-600" : "text-slate-900"} />
         <Stat label="Shortlisted" value={applications.Shortlisted} tone="text-emerald-600" />
       </div>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <section className="card p-5" aria-labelledby="recent-h">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <section className="card min-w-0 p-5" aria-labelledby="recent-h">
           <h2 id="recent-h" className="font-semibold">Recent applications</h2>
           {recentApplications.length === 0 ? <p className="mt-3 text-sm text-slate-500">No applications yet. Share your job links to start receiving them.</p> : (
             <ul className="mt-3 divide-y divide-slate-100">
@@ -38,7 +38,7 @@ export default function EmployerOverview() {
             </ul>
           )}
         </section>
-        <section className="card p-5" aria-labelledby="feat-h">
+        <section className="card min-w-0 p-5" aria-labelledby="feat-h">
           <h2 id="feat-h" className="flex items-center gap-2 font-semibold"><Star size={16} className="text-amber-500" aria-hidden="true" />Featured promotions</h2>
           {featuredJobs.length === 0 ? <p className="mt-3 text-sm text-slate-500">None of your jobs are featured right now. Use <strong>Feature This Job</strong> in the table below to get more visibility.</p> : (
             <ul className="mt-3 divide-y divide-slate-100">

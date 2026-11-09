@@ -9,7 +9,7 @@ const { isFeaturedActive } = require('../utils/featured');
 const events = require('../services/events');
 const v = require('../validators/adminValidator');
 
-const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+const asyncHandler = require('../utils/asyncHandler');
 const ok = (res, message, data, extra = {}) => res.json({ success: true, message, data, ...extra });
 const pagination = (page, limit, total) => ({ page, limit, total, pages: Math.ceil(total / limit) });
 const daysAgo = (n) => new Date(Date.now() - n * 864e5);

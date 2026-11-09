@@ -1,13 +1,14 @@
 const crypto = require('crypto');
 const User = require('../models/User');
 const PasswordReset = require('../models/PasswordReset');
+const Session = require('../models/Session');
 const AppError = require('../utils/AppError');
 const email = require('../services/email');
 const { templates: t, abs } = require('../services/emailTemplates');
 const { background } = require('../services/notifier');
 const v = require('../validators/productValidator');
 
-const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+const asyncHandler = require('../utils/asyncHandler');
 const RESET_MINUTES = 30;
 const RESEND_AFTER_SECONDS = 60; // one reset email per minute per account (stops inbox flooding)
 const sha256 = (s) => crypto.createHash('sha256').update(s).digest('hex');
@@ -45,6 +46,7 @@ exports.resetPassword = asyncHandler(async (req, res) => {
   user.passwordChangedAt = new Date(); // all earlier sessions become invalid
   await user.save();
   await PasswordReset.deleteMany({ userId: user._id });
+  await Session.deleteMany({ userId: user._id }); // every signed-in device is signed out
   background(() => email.send({ to: user.email, ...t.passwordChanged({ name: user.name }) }));
   res.json({ success: true, message: 'Your password was updated. You can now sign in.' });
 });

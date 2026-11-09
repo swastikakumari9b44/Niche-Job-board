@@ -7,11 +7,11 @@ export default function ScoreRing({ score = 0, size = 64 }) {
   const c = 2 * Math.PI * r;
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setValue(score);
-      return;
-    }
     let raf;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      raf = requestAnimationFrame(() => setValue(score)); // no animation, just show the final value
+      return () => cancelAnimationFrame(raf);
+    }
     const start = performance.now();
     const tick = (now) => {
       const p = Math.min((now - start) / 1000, 1);

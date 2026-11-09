@@ -8,7 +8,7 @@ const { featuredActiveExpr, isFeaturedActive } = require('../utils/featured');
 const { sendCsv, inr } = require('../utils/csv');
 const v = require('../validators/analyticsValidator');
 
-const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+const asyncHandler = require('../utils/asyncHandler');
 const STATUSES = ['Applied', 'Shortlisted', 'Rejected'];
 const EXPORT_LIMIT = 10000;
 const respond = (res, message, data) => { res.set('Cache-Control', 'no-store'); res.json({ success: true, message, data }); };

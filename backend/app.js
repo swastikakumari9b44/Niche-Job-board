@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
 const mongoose = require('mongoose');
 mongoose.set('bufferCommands', false); // fail fast (500) instead of hanging when the DB is not connected
 const { isAllowedOrigin } = require('./config/env');
@@ -21,12 +22,24 @@ const { webhook: razorpayWebhook } = require('./controllers/paymentController');
 const { protect, requireRole } = require('./middleware/authMiddleware');
 const { applyToJob } = require('./controllers/applicationController');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
+const { originGuard } = require('./middleware/csrf');
+const { uploadLimiter } = require('./middleware/rateLimiters');
 
 const app = express();
 
 app.disable('x-powered-by');
 // Render (and most hosts) put a proxy in front of Express; trust one hop so req.ip, rate limiting and secure cookies use the real client.
 if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);
+// Security headers for an API: no HTML is ever served, so the CSP forbids everything; HSTS only in production (HTTPS).
+app.use(
+  helmet({
+    contentSecurityPolicy: { directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"], baseUri: ["'none'"], formAction: ["'none'"] } },
+    hsts: process.env.NODE_ENV === 'production' ? { maxAge: 31536000, includeSubDomains: true } : false,
+    referrerPolicy: { policy: 'no-referrer' },
+    crossOriginResourcePolicy: { policy: 'same-site' },
+  })
+);
+app.use((_req, res, next) => { res.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()'); next(); });
 app.use(
   cors({
     credentials: true, // allow the browser to send the HttpOnly auth cookie from an allow-listed origin
@@ -39,11 +52,14 @@ app.use(
 app.post('/api/payments/webhook', express.raw({ type: '*/*', limit: '100kb' }), razorpayWebhook);
 app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
+// CSRF / cross-origin protection: every POST/PUT/PATCH/DELETE (including multipart /api/apply) must come from an allow-listed origin.
+app.use('/api', originGuard);
 // NOTE: /uploads is intentionally NOT served statically.
 
 const DB_STATES = ['disconnected', 'connected', 'connecting', 'disconnecting'];
 
 app.get('/', (_req, res) => res.json({ success: true, message: 'Niche Job Board API' }));
+// Liveness: always 200 while the process is up (so a short database blip does not make the host restart the server).
 app.get('/api/health', (_req, res) => {
   const state = mongoose.connection.readyState;
   res.json({
@@ -54,9 +70,15 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+// Readiness: 503 while the database is not connected (use for uptime monitors, not for the host's restart health check).
+app.get('/api/ready', (_req, res) => {
+  const connected = mongoose.connection.readyState === 1;
+  res.status(connected ? 200 : 503).json({ success: connected, status: connected ? 'ready' : 'database_unavailable' });
+});
+
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
-app.post('/api/apply', protect, requireRole('candidate'), applyToJob); // backward-compatible alias
+app.post('/api/apply', protect, uploadLimiter(), requireRole('candidate'), applyToJob); // backward-compatible alias
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/employer', employerRoutes);

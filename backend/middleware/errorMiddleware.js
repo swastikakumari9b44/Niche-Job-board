@@ -1,6 +1,11 @@
 const { ZodError } = require('zod');
 const multer = require('multer');
 const AppError = require('../utils/AppError');
+const { logError } = require('../utils/logger');
+
+// Errors that mean "the database is unreachable" (down, restarting, network blip, not yet connected).
+const DB_ERROR_NAMES = new Set(['MongoNetworkError', 'MongoNetworkTimeoutError', 'MongoServerSelectionError', 'MongooseServerSelectionError', 'MongoNotConnectedError', 'MongoTopologyClosedError', 'MongoPoolClearedError', 'MongoPoolClosedError', 'MongoWaitQueueTimeoutError']);
+const isDbUnavailable = (err) => DB_ERROR_NAMES.has(err?.name) || /before initial connection is complete|Client must be connected|topology was destroyed|connection .* closed/i.test(String(err?.message || ''));
 
 const notFound = (req, _res, next) => next(new AppError(`Route not found: ${req.method} ${req.originalUrl}`, 404));
 
@@ -22,6 +27,11 @@ function errorHandler(err, _req, res, _next) {
   } else if (err instanceof multer.MulterError) {
     status = 400;
     message = err.code === 'LIMIT_FILE_SIZE' ? 'File too large' : 'Invalid file upload';
+  } else if (isDbUnavailable(err)) {
+    status = 503;
+    message = 'The service is temporarily unavailable. Please try again in a moment.';
+    code = 'DB_UNAVAILABLE';
+    res.set('Retry-After', '5');
   } else if (err.type === 'entity.parse.failed') {
     status = 400;
     message = 'Malformed JSON body';
@@ -43,9 +53,9 @@ function errorHandler(err, _req, res, _next) {
     message = err.expose ? err.message : message;
   }
 
-  if (status >= 500) console.error(err); // log server-side only, never send internals
+  if (status >= 500) logError(`${_req.method} ${_req.path} -> ${status}`, err); // sanitized, server-side only: never the whole error object
 
   res.status(status).json({ success: false, message, ...(code && { code }), ...(details && { errors: details }) });
 }
 
-module.exports = { notFound, errorHandler };
+module.exports = { notFound, errorHandler, isDbUnavailable };

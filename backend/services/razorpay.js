@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
 const AppError = require('../utils/AppError');
+const { redact } = require('../utils/logger');
 
 // All Razorpay access goes through this file so tests can replace createOrder / fetchPayment with fakes.
 let client;
@@ -43,7 +44,7 @@ function verifyWebhookSignature(rawBody, signature) {
 
 // Errors are logged without request bodies or secrets, and shown to users in a generic form.
 function gatewayError(action, err) {
-  console.error(`Razorpay ${action} failed: status=${err?.statusCode ?? 'n/a'} code=${err?.error?.code ?? err?.code ?? 'n/a'} reason="${err?.error?.description ?? err?.message ?? 'n/a'}"`);
+  console.error(`Razorpay ${action} failed: status=${err?.statusCode ?? 'n/a'} code=${err?.error?.code ?? err?.code ?? 'n/a'} reason="${redact(err?.error?.description ?? err?.message ?? 'n/a', 200)}"`);
   if (err?.statusCode === 401) {
     console.error('  -> Razorpay rejected the API keys. On this server, RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET must be a MATCHING pair generated together in the same mode (Test or Live), with no spaces or quotes. Regenerate the key pair, update both, then redeploy.');
   }
@@ -78,7 +79,7 @@ function logConfigStatus() {
   if (clean(process.env.RAZORPAY_KEY_ID) !== String(process.env.RAZORPAY_KEY_ID)) problems.push('RAZORPAY_KEY_ID had stray spaces/quotes (cleaned automatically; fix it anyway)');
   if (clean(process.env.RAZORPAY_KEY_SECRET) !== String(process.env.RAZORPAY_KEY_SECRET)) problems.push('RAZORPAY_KEY_SECRET had stray spaces/quotes (cleaned automatically; fix it anyway)');
   if (!isWebhookConfigured()) problems.push('RAZORPAY_WEBHOOK_SECRET is not set (webhooks will be rejected)');
-  console.log(`Payments: enabled in ${mode()} mode, key id ${id.slice(0, 12)}..., secret length ${secret.length}${isWebhookConfigured() ? ', webhook secret set' : ''}`);
+  console.log(`Payments: enabled in ${mode()} mode, key id ${id.slice(0, 9)}...${isWebhookConfigured() ? ', webhook secret set' : ''}`);
   for (const p of problems) console.warn(`Payments warning: ${p}`);
 }
 

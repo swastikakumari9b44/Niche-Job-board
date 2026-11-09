@@ -55,10 +55,13 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
+  // Close the menus when the route changes (state adjusted during render, the pattern React recommends over an effect).
+  const [lastPath, setLastPath] = useState(pathname);
+  if (lastPath !== pathname) {
+    setLastPath(pathname);
     setMenuOpen(false);
     setNicheOpen(false);
-  }, [pathname]);
+  }
 
   useEffect(() => {
     const onClick = (e) => {
@@ -119,7 +122,7 @@ export default function Navbar() {
           className="flex items-center gap-2"
           aria-label="NicheHire home"
         >
-          <img src="/logo.png" alt="" className="h-9 w-9 object-contain" />
+          <img src="/icon.png" alt="" className="h-9 w-9 object-contain" />
           <span className="text-lg font-extrabold tracking-tight text-slate-900">
             Niche<span className="text-brand-600">Hire</span>
           </span>
@@ -199,14 +202,17 @@ export default function Navbar() {
           ))}
         </nav>
 
+        {/* Right side. The notification bell is mounted ONCE here (it used to be mounted twice, once per breakpoint, which doubled its polling). */}
+        <div className="flex items-center gap-2">
+        {!loading && user && <NotificationBell />}
+
         {/* Desktop actions */}
         <div className="hidden items-center gap-2 md:flex">
           {loading ? (
             <span className="block h-9 w-28" aria-hidden="true" />
           ) : user ? (
             <>
-              <NotificationBell />
-              <span className="max-w-40 truncate text-sm font-medium text-slate-600">
+              <span className="hidden max-w-40 truncate lg:inline text-sm font-medium text-slate-600">
                 Hi, {user.name?.split(" ")[0]}
               </span>
               <button
@@ -237,8 +243,6 @@ export default function Navbar() {
 
         {/* Mobile toggle */}
         <div className="flex items-center gap-2 md:hidden">
-          {!loading && user && <NotificationBell />}
-
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
@@ -248,6 +252,7 @@ export default function Navbar() {
           >
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
+        </div>
         </div>
       </div>
 

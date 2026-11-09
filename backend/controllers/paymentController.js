@@ -8,7 +8,7 @@ const { featuredJob, ORDER_REUSE_MINUTES } = require('../config/payments');
 const { isFeaturedActive } = require('../utils/featured');
 const v = require('../validators/paymentValidator');
 
-const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+const asyncHandler = require('../utils/asyncHandler');
 const OPEN = Payment.OPEN;
 const STALE_WEBHOOK_MS = 72 * 3600 * 1000; // Razorpay retries for ~24h; anything older than 72h is treated as a replay
 

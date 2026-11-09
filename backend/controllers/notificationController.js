@@ -2,7 +2,7 @@ const Notification = require('../models/Notification');
 const AppError = require('../utils/AppError');
 const v = require('../validators/productValidator');
 
-const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+const asyncHandler = require('../utils/asyncHandler');
 // Every query below is scoped to req.user.id: nobody can read or change another user's notifications.
 const shape = ({ emailStatus, emailError, dedupeKey, ...n }) => n;
 
