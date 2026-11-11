@@ -1,11 +1,12 @@
 import "./globals.css";
-import { Manrope } from "next/font/google";
+import { Manrope, Bricolage_Grotesque } from "next/font/google";
+
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
+const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage" });
 import AuthProvider from "@/components/AuthProvider";
 import ToastProvider from "@/components/ToastProvider";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
 
 export const metadata = {
   title: { default: "NicheHire - Niche Job Board & ATS", template: "%s | NicheHire" },
