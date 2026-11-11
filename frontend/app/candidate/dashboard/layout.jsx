@@ -1,7 +1,7 @@
 import DashboardShell from "@/components/DashboardShell";
 
 const links = [
-  { href: "/candidate", label: "My applications", icon: "file" },
+  { href: "/candidate/dashboard", label: "My applications", icon: "file" },
   { href: "/jobs", label: "Browse jobs", icon: "jobs" },
 ];
 

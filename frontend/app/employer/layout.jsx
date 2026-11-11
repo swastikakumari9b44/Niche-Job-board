@@ -1,7 +1,7 @@
 import DashboardShell from "@/components/DashboardShell";
 
 const links = [
-  { href: "/employer", label: "Dashboard", icon: "dashboard" },
+  { href: "/employer/dashboard", label: "Dashboard", icon: "dashboard" },
   // add your other employer routes here, e.g.:
   // { href: "/employer/jobs/new", label: "Post a job", icon: "add" },
 ];

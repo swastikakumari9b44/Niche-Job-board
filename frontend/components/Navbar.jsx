@@ -83,10 +83,10 @@ export default function Navbar() {
 
   const dashboardHref =
     user?.role === "employer"
-      ? "/employer"
+      ? "/employer/dashboard"
       : user?.role === "admin"
         ? "/admin"
-        : "/candidate";
+        : "/candidate/dashboard";
 
   const links = [];
 
