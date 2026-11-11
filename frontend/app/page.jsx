@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { BarChart3, FileText, Rocket, Search, Target } from "lucide-react";
-import { CategoryGrid, HeroSearch, RecentJobs } from "@/components/HomeSections";
+import { HeroSearch, RecentJobs } from "@/components/HomeSections";
 import RotatingWord from "@/components/RotatingWord";
 import Reveal from "@/components/Reveal";
+import HeroPreview from "@/components/HeroPreview";
+import CategoryBento from "@/components/CategoryBento";
 
 const STEPS = [
   { icon: Search, title: "Find your niche", text: "Browse roles built around your specialty, from machine learning to critical-care nursing." },
@@ -13,40 +15,43 @@ const STEPS = [
 export default function HomePage() {
   return (
     <>
+      {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-brand-50 to-transparent">
-        {/* soft floating blobs */}
         <div aria-hidden="true" className="pointer-events-none absolute -left-20 top-10 h-72 w-72 animate-float rounded-full bg-brand-200/50 blur-3xl" />
-        <div aria-hidden="true" className="pointer-events-none absolute -right-16 bottom-0 h-80 w-80 animate-float rounded-full bg-tint-lilac blur-3xl [animation-delay:2s]" />
-
-        <div className="relative mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 sm:py-28">
-          <span className="inline-flex animate-fade-up items-center gap-2 rounded-full border border-brand-100 bg-white px-3 py-1 text-xs font-semibold text-brand-700">
-            <Rocket size={14} aria-hidden="true" />Specialised hiring, minus the noise
-          </span>
-          <h1 className="mt-6 animate-fade-up text-4xl font-bold tracking-tight text-slate-900 [animation-delay:100ms] sm:text-6xl">
-            Hire and get hired in
-            <span className="block"><RotatingWord /></span>
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl animate-fade-up text-lg text-slate-600 [animation-delay:200ms]">
-            A job board with role-specific details and a built-in applicant tracker, for teams who need more than a generic listing.
-          </p>
-          <div className="animate-fade-up [animation-delay:300ms]">
-            <HeroSearch />
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-              <Link href="/jobs" className="btn-primary">Search jobs</Link>
-              <Link href="/employer/post" className="btn-secondary">Post a job</Link>
+        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
+          <div>
+            <span className="inline-flex animate-fade-up items-center gap-2 rounded-full border border-brand-100 bg-white px-3 py-1 text-xs font-semibold text-brand-700">
+              <Rocket size={14} aria-hidden="true" />Specialised hiring, minus the noise
+            </span>
+            <h1 className="mt-6 animate-fade-up text-4xl font-bold tracking-tight text-slate-900 [animation-delay:100ms] sm:text-6xl">
+              Hire and get hired in
+              <span className="block"><RotatingWord /></span>
+            </h1>
+            <p className="mt-5 max-w-xl animate-fade-up text-lg text-slate-600 [animation-delay:200ms]">
+              A job board with role-specific details and a built-in applicant tracker, for teams who need more than a generic listing.
+            </p>
+            <div className="mt-8 animate-fade-up [animation-delay:300ms]">
+              <HeroSearch />
+              <div className="mt-5 flex flex-wrap items-center gap-4">
+                <Link href="/jobs" className="text-sm font-semibold text-brand-700 hover:underline">Browse all jobs →</Link>
+                <Link href="/employer/post" className="btn-secondary">Post a job</Link>
+              </div>
             </div>
           </div>
+          <HeroPreview />
         </div>
       </section>
 
+      {/* Categories */}
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <Reveal>
           <h2 className="text-2xl font-bold text-slate-900">Featured categories</h2>
           <p className="mt-1 text-slate-600">Jump straight into the field you work in.</p>
-          <div className="mt-6"><CategoryGrid /></div>
+          <div className="mt-6"><CategoryBento /></div>
         </Reveal>
       </section>
 
+      {/* Recent jobs */}
       <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-6">
         <Reveal>
           <h2 className="text-2xl font-bold text-slate-900">Recently posted jobs</h2>
@@ -54,6 +59,7 @@ export default function HomePage() {
         </Reveal>
       </section>
 
+      {/* How it works */}
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
           <h2 className="text-center text-2xl font-bold text-slate-900">How it works</h2>
@@ -72,6 +78,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Employer CTA */}
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <Reveal>
           <div className="flex flex-col items-center justify-between gap-5 rounded-3xl bg-brand-600 px-8 py-10 text-center md:flex-row md:text-left">
