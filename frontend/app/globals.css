@@ -106,3 +106,8 @@ textarea.input { border-radius: 1.25rem; }
     transition-duration: 0.01ms !important;
   }
 }
+
+h1, h2, h3 {
+  font-family: var(--font-bricolage), var(--font-manrope), sans-serif;
+  letter-spacing: -0.02em;
+}
