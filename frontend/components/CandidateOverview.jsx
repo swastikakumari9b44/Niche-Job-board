@@ -22,7 +22,7 @@ export default function CandidateOverview() {
         <Stat label="Shortlisted" value={stats.Shortlisted} tone="text-emerald-600" />
         <Stat label="Not selected" value={stats.Rejected} />
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {pc && (
           <div className="card p-5 md:col-span-2">
             <div className="flex items-center justify-between"><p className="font-semibold text-slate-900">Profile completion</p><span className="text-sm font-semibold text-indigo-600">{pc.percent}%</span></div>

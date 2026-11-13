@@ -25,10 +25,10 @@ function Saved() {
       <h1 className="text-3xl font-bold text-slate-900">Saved jobs</h1>
       <p className="mb-6 mt-1 text-slate-600">Jobs you bookmarked to come back to. Closed jobs disappear from this list.</p>
       {error ? <ErrorState message={errorText(error)} onRetry={reload} />
-        : loading && !data ? <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <JobCardSkeleton key={i} />)}</div>
+        : loading && !data ? <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <JobCardSkeleton key={i} />)}</div>
         : jobs.length === 0 ? <EmptyState title="No saved jobs yet" message="Tap Save job on any listing to keep it here." action={<Link href="/jobs" className="btn-primary">Browse jobs</Link>} />
         : (
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             {jobs.map((j) => (
               <div key={j._id} className="flex flex-col gap-2">
                 <JobCard job={j} />

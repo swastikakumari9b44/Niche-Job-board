@@ -55,7 +55,7 @@ function Form({ me, onSaved }) {
         <Field id="name" label="Full name" required error={errors.name}><input id="name" className="input" value={f.name} onChange={(e) => set("name", e.target.value)} aria-invalid={!!errors.name} /></Field>
         {employer && <Field id="companyName" label="Company name"><input id="companyName" className="input" value={f.companyName} onChange={(e) => set("companyName", e.target.value)} /></Field>}
         <Field id="headline" label={employer ? "Short company description" : "Professional headline"} hint="For example: ML engineer, 2 years of experience" error={errors.headline}><input id="headline" className="input" maxLength={140} value={f.headline} onChange={(e) => set("headline", e.target.value)} /></Field>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Field id="location" label="Location"><input id="location" className="input" value={f.location} onChange={(e) => set("location", e.target.value)} placeholder="Bengaluru" /></Field>
           <Field id="phone" label="Phone" error={errors.phone}><input id="phone" type="tel" className="input" value={f.phone} onChange={(e) => set("phone", e.target.value)} aria-invalid={!!errors.phone} /></Field>
         </div>

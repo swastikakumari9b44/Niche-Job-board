@@ -137,7 +137,7 @@ export default function JobsBoard() {
         {error ? (
           <ErrorState message={error.message || "Could not load jobs."} onRetry={reload} />
         ) : loading ? (
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 6 }).map((_, i) => <JobCardSkeleton key={i} />)}</div>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 6 }).map((_, i) => <JobCardSkeleton key={i} />)}</div>
         ) : jobs.length === 0 ? (
           hasFilters || page > 1 ? (
             <EmptyState title="No jobs match your search" message="Try different keywords, or remove a filter." action={<button type="button" onClick={clear} className="btn-primary">Clear filters</button>} />
@@ -146,7 +146,7 @@ export default function JobsBoard() {
           )
         ) : (
           <>
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{jobs.map((j) => <JobCard key={j._id} job={j} />)}</div>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">{jobs.map((j) => <JobCard key={j._id} job={j} />)}</div>
             <Pagination page={pagination.page} pages={pagination.pages} onChange={changePage} />
           </>
         )}

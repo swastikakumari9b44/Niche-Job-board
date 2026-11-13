@@ -7,7 +7,7 @@ const net = require('node:net');
 const path = require('node:path');
 const { URI, skip } = require('./helpers/itest');
 
-const STRONG = 'q8Zr2kLx9PvT4mNc7WbY1dHs6GfJ3aEu5oIe0RtV';
+const STRONG = 'bf720425995d568dc030b4bd0db2979582133f46';
 const freePort = () => new Promise((r) => { const s = net.createServer().listen(0, () => { const p = s.address().port; s.close(() => r(p)); }); });
 const start = (env) => {
   const child = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { PATH: process.env.PATH, ...env }, stdio: ['ignore', 'pipe', 'pipe'] });

@@ -67,7 +67,7 @@ function Analytics() {
               {d.period.applications === 0 ? <p className="py-8 text-center text-sm text-slate-500">No applications in this period. Try a longer time range.</p> : <LineChart label="Applications received over time" keys={d.period.series.map((p) => p.key)} series={[{ name: "Applications", color: COLORS.indigo, values: d.period.series.map((p) => p.total) }]} />}
             </Section>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Section title="Application status distribution" hint="Applications received in this period, by current status">
                 <Donut label="Application status" items={[{ label: "Pending review", value: d.period.byStatus.Applied, color: COLORS.sky }, { label: "Shortlisted", value: d.period.byStatus.Shortlisted, color: COLORS.emerald }, { label: "Rejected", value: d.period.byStatus.Rejected, color: COLORS.rose }]} />
               </Section>
@@ -76,7 +76,7 @@ function Analytics() {
               </Section>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Section title="Candidate application trend" hint="Different candidates who applied, per period">
                 {d.period.applications === 0 ? <p className="py-8 text-center text-sm text-slate-500">No applicants in this period.</p> : <LineChart label="Unique candidates applying" keys={d.period.series.map((p) => p.key)} series={[{ name: "Unique candidates", color: COLORS.sky, values: d.period.series.map((p) => p.uniqueCandidates) }]} />}
               </Section>
@@ -106,7 +106,7 @@ function Analytics() {
             </Section>
 
             <Section title="Featured vs regular jobs" hint="Compares jobs that had a paid promotion with the rest. These are different jobs, so treat it as a guide, not proof.">
-              <div className="grid gap-4 sm:grid-cols-2"><FeaturedCard title="Jobs that were featured" g={d.featuredComparison.featured} /><FeaturedCard title="Jobs never featured" g={d.featuredComparison.notFeatured} /></div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2"><FeaturedCard title="Jobs that were featured" g={d.featuredComparison.featured} /><FeaturedCard title="Jobs never featured" g={d.featuredComparison.notFeatured} /></div>
               <p className="mt-3 text-xs text-slate-500">{d.notes.views} {d.notes.statusModel}</p>
             </Section>
           </div>

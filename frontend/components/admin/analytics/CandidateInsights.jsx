@@ -35,13 +35,13 @@ export default function CandidateInsights() {
               <Kpi label="Response rate" value={pctText(d.totals.responseRate)} hint="shortlisted or not selected" />
               <Kpi label="In this period" value={d.period.applications} />
             </div>
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
               <Section title="Applications over time" hint="Colored by each application's current status" className="lg:col-span-2">
                 {d.period.applications === 0 ? <p className="py-8 text-center text-sm text-slate-500">No applications in this period. <Link href="/jobs" className="font-semibold text-indigo-600 underline">Browse jobs</Link> to get started.</p> : <StackedBars label="Your applications over time" parts={PARTS} rows={d.period.series} />}
               </Section>
               <Section title="Status summary"><Donut label="Application status" items={[{ label: "Pending", value: d.period.byStatus.Applied, color: COLORS.sky }, { label: "Shortlisted", value: d.period.byStatus.Shortlisted, color: COLORS.emerald }, { label: "Rejected", value: d.period.byStatus.Rejected, color: COLORS.rose }]} emptyText="Nothing in this period" /></Section>
             </div>
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <Section title="Where you applied"><BarList items={d.period.byCategory} labelKey="category" emptyText="No applications in this period" /></Section>
               <Section title="Recent activity">
                 {d.recentActivity.length === 0 ? <p className="text-sm text-slate-500">Your applications will appear here.</p> : (

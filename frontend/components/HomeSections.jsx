@@ -30,7 +30,7 @@ export function CategoryGrid() {
   if (error) return null;
   const names = config ? Object.keys(config.categories) : [];
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {loading && Array.from({ length: 4 }).map((_, i) => <div key={i} className="card h-24 animate-pulse bg-slate-100" aria-hidden="true" />)}
       {names.filter((n) => n !== "Other").map((name) => {
         const Icon = ICONS[name] || Layers;
@@ -51,11 +51,11 @@ export function CategoryGrid() {
 export function RecentJobs() {
   const { data, loading, error, reload } = useApi("/api/jobs?limit=6");
   if (error) return <ErrorState message={error.message} onRetry={reload} />;
-  if (loading) return <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <JobCardSkeleton key={i} />)}</div>;
+  if (loading) return <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <JobCardSkeleton key={i} />)}</div>;
   if (!data?.data.length) return <EmptyState title="No jobs posted yet" message="Be the first to post a role." action={<Link href="/employer/post" className="btn-primary">Post a job</Link>} />;
   return (
     <>
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{data.data.map((j) => <JobCard key={j._id} job={j} />)}</div>
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">{data.data.map((j) => <JobCard key={j._id} job={j} />)}</div>
       <div className="mt-8 text-center"><Link href="/jobs" className="btn-secondary">View all jobs <ArrowRight size={16} aria-hidden="true" /></Link></div>
     </>
   );

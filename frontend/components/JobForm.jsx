@@ -120,7 +120,7 @@ export default function JobForm({ job }) {
 
       <section className="card space-y-5 p-6">
         <h2 className="text-lg font-semibold">Job details</h2>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Field id="title" label="Job title" required error={err("title")}><input id="title" className="input" value={form.title} onChange={(e) => set("title", e.target.value)} aria-invalid={!!err("title")} /></Field>
           <Field id="company" label="Company" required error={err("company")}><input id="company" className="input" value={form.company} onChange={(e) => set("company", e.target.value)} aria-invalid={!!err("company")} /></Field>
           <Field id="location" label="Location" required error={err("location")}><input id="location" className="input" value={form.location} onChange={(e) => set("location", e.target.value)} placeholder="Bengaluru, Remote..." aria-invalid={!!err("location")} /></Field>
@@ -134,7 +134,7 @@ export default function JobForm({ job }) {
         <Field id="description" label="Description" required error={err("description")}>
           <textarea id="description" rows={7} className="input" value={form.description} onChange={(e) => set("description", e.target.value)} aria-invalid={!!err("description")} />
         </Field>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Field id="salaryMin" label="Minimum salary (INR, optional)" error={err("salary")}><input id="salaryMin" type="number" min="0" className="input" value={form.salaryMin} onChange={(e) => set("salaryMin", e.target.value)} /></Field>
           <Field id="salaryMax" label="Maximum salary (INR, optional)"><input id="salaryMax" type="number" min="0" className="input" value={form.salaryMax} onChange={(e) => set("salaryMax", e.target.value)} /></Field>
         </div>

@@ -51,7 +51,7 @@ function JobAnalytics() {
           {d.seriesTotal === 0 ? <p className="py-8 text-center text-sm text-slate-500">No applications in this period yet.</p> : <LineChart label="Applications over time" keys={d.series.map((p) => p.key)} series={[{ name: "Applications", color: COLORS.indigo, values: d.series.map((p) => p.total) }]} />}
         </Section>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Section title="Status breakdown (all time)"><Donut label="Status breakdown" items={[{ label: "Pending review", value: a.byStatus.Applied, color: COLORS.sky }, { label: "Shortlisted", value: a.byStatus.Shortlisted, color: COLORS.emerald }, { label: "Rejected", value: a.byStatus.Rejected, color: COLORS.rose }]} emptyText="No applications yet" /></Section>
           <Section title="Compared with your other jobs">
             {!c ? <p className="text-sm text-slate-500">This is your only job so far, so there is nothing to compare with.</p> : (

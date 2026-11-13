@@ -35,7 +35,7 @@ export default function PlatformAnalyticsPage() {
 
       <div className="card mb-6 space-y-3 p-4">
         <RangeFilter value={value} onChange={setValue} />
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div><label htmlFor="f-cat" className="mb-1 block text-xs font-medium text-slate-600">Category / niche</label>
             <select id="f-cat" className="input" value={category} onChange={(e) => setCategory(e.target.value)}><option value="">All categories</option>{config && Object.keys(config.categories).map((c) => <option key={c}>{c}</option>)}</select></div>
           <div><label htmlFor="f-js" className="mb-1 block text-xs font-medium text-slate-600">Job status</label>
@@ -69,7 +69,7 @@ export default function PlatformAnalyticsPage() {
               <ExportButton path={`/api/admin/analytics/export/jobs.csv?${qs}`} label="Export jobs (CSV)" fallbackName="jobs.csv" />
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <Section title="User registrations" hint="New candidates and employers over time" className="lg:col-span-2">
                 {d.period.newRegistrations.total === 0 ? <p className="py-8 text-center text-sm text-slate-500">No new registrations in this period.</p> : <StackedBars label="User registrations" parts={[{ key: "candidates", name: "Candidates", color: COLORS.sky }, { key: "employers", name: "Employers", color: COLORS.indigo }]} rows={d.period.registrations} />}
               </Section>
@@ -78,7 +78,7 @@ export default function PlatformAnalyticsPage() {
               </Section>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Section title="Job posting trend">
                 {d.period.jobsPosted === 0 ? <p className="py-8 text-center text-sm text-slate-500">No jobs posted in this period.</p> : <LineChart label="Jobs posted" keys={d.period.jobs.map((x) => x.key)} series={[{ name: "Jobs posted", color: COLORS.indigo, values: d.period.jobs.map((x) => x.count) }]} />}
               </Section>
@@ -87,12 +87,12 @@ export default function PlatformAnalyticsPage() {
               </Section>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Section title="Popular job categories (niches)" hint="Applications received in this period"><BarList items={d.period.categories} labelKey="category" valueKey="applications" emptyText="No applications in this period" /></Section>
               <Section title="Jobs posted by category" hint="In this period"><BarList items={d.period.categories.filter((c) => c.jobs > 0)} labelKey="category" valueKey="jobs" emptyText="No jobs posted in this period" /></Section>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <Section title="Payments and revenue" hint="Confirmed payments only. Pending and failed are never counted." className="lg:col-span-2">
                 {d.period.successfulPayments === 0 ? <p className="py-8 text-center text-sm text-slate-500">No confirmed payments in this period.</p> : <LineChart label="Revenue" format={(n) => formatMoney(n)} keys={d.period.revenueSeries.map((x) => x.key)} series={[{ name: "Revenue", color: COLORS.amber, values: d.period.revenueSeries.map((x) => x.amount) }]} />}
               </Section>

@@ -16,7 +16,7 @@ const { createLoginAccountLimiter, createUploadLimiter } = require('../middlewar
 const { errorHandler, isDbUnavailable } = require('../middleware/errorMiddleware');
 const makePdf = require('./helpers/makePdf');
 
-const GOOD = { MONGO_URI: 'mongodb://x/y', JWT_SECRET: 'q8Zr2kLx9PvT4mNc7WbY1dHs6GfJ3aEu5oIe0RtV' };
+const GOOD = { MONGO_URI: 'mongodb://x/y', JWT_SECRET: 'bf720425995d568dc030b4bd0db2979582133f46' };
 const withEnv = (vars, fn) => {
   const old = {};
   for (const k of Object.keys(vars)) { old[k] = process.env[k]; if (vars[k] === undefined) delete process.env[k]; else process.env[k] = vars[k]; }

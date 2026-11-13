@@ -1,7 +1,7 @@
 import { Spinner } from "@/components/ui";
 
 export const Section = ({ title, hint, children, className = "" }) => (
-  <section className={`card p-5 ${className}`}>
+  <section className={`card min-w-0 p-5 ${className}`}>
     <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
     {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}
     <div className="mt-4">{children}</div>

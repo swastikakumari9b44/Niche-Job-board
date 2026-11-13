@@ -6,7 +6,7 @@ import TagInput from "./TagInput";
 // Field types: select, multiselect, tags, boolean, text. Nothing outside this list can be rendered.
 export default function DynamicFields({ fields, values, onChange, errors = {} }) {
   return (
-    <div className="grid gap-5 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
       {fields.map((f) => {
         const id = `cf-${f.key}`;
         const value = values[f.key];
