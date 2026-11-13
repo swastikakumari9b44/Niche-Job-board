@@ -1,11 +1,12 @@
 import "./globals.css";
-import { Manrope } from "next/font/google";
+import { Manrope, Bricolage_Grotesque } from "next/font/google";
 import AuthProvider from "@/components/AuthProvider";
 import ToastProvider from "@/components/ToastProvider";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
+const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage" });
 
 export const metadata = {
   title: { default: "NicheHire - Niche Job Board & ATS", template: "%s | NicheHire" },
@@ -14,13 +15,13 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`h-full ${manrope.variable}`}>
+    <html lang="en" className={`h-full ${manrope.variable} ${display.variable}`}>
       <body className="flex min-h-full flex-col">
         <AuthProvider>
           <ToastProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
           </ToastProvider>
         </AuthProvider>
       </body>
