@@ -14,7 +14,7 @@
   --color-brand-700: #4a3e96;
   --color-brand-900: #2a2360;
 
-  --color-page:  #e4ecfb;
+  --color-page:  #f7f5fd;
   --color-tint-lavender: #e7e5fb;
   --color-tint-lilac:    #f4e5fb;
   --color-tint-rose:     #fde6ec;
@@ -50,7 +50,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Buttons */
+h1, h2, h3 {
+  font-family: var(--font-bricolage), var(--font-manrope), sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Buttons ---------- */
 @utility btn {
   @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-60;
 }
@@ -64,13 +69,13 @@ body {
   @apply btn bg-white text-red-600 border border-red-200 hover:bg-red-50;
 }
 
-/* Inputs */
+/* ---------- Inputs ---------- */
 @utility input {
   @apply block w-full rounded-full border border-transparent bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100;
 }
 textarea.input { border-radius: 1.25rem; }
 
-/* Cards */
+/* ---------- Cards ---------- */
 @utility card {
   @apply rounded-3xl bg-white shadow-sm;
 }
@@ -79,7 +84,7 @@ textarea.input { border-radius: 1.25rem; }
 @utility card-tint-rose     { @apply rounded-2xl bg-tint-rose p-4; }
 @utility card-promo         { @apply rounded-3xl bg-brand-600 p-6 text-white; }
 
-/* Badges */
+/* ---------- Badges ---------- */
 @utility badge {
   @apply inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold;
 }
@@ -87,7 +92,7 @@ textarea.input { border-radius: 1.25rem; }
 @utility badge-info    { @apply badge bg-brand-600 text-white; }
 @utility badge-danger  { @apply badge bg-rose-500 text-white; }
 
-/* Sidebar */
+/* ---------- Sidebar ---------- */
 @utility sidebar {
   @apply bg-brand-600 text-white rounded-r-3xl;
 }
@@ -98,6 +103,33 @@ textarea.input { border-radius: 1.25rem; }
   @apply sidebar-link bg-white text-brand-700 hover:bg-white;
 }
 
+/* ---------- Pitch-deck style helpers ---------- */
+.display {
+  font-family: var(--font-bricolage), var(--font-manrope), sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+}
+.bg-hero {
+  background:
+    radial-gradient(900px 600px at 100% 0%, #d9ccff 0%, transparent 60%),
+    linear-gradient(135deg, #7b6bd6 0%, #5b4db3 40%, #2a2360 100%);
+}
+.dots {
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.22) 1.5px, transparent 0);
+  background-size: 30px 30px;
+}
+.grad-card {
+  background: linear-gradient(160deg, #8b7fd6 0%, #5b4db3 55%, #3b2f85 100%);
+  color: #fff;
+}
+.outline-text {
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.4);
+}
+.spin-slow { animation: slow-spin 60s linear infinite; }
+@keyframes slow-spin { to { transform: rotate(360deg); } }
+
 /* Respect users who turn off animations in their OS */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
@@ -105,9 +137,4 @@ textarea.input { border-radius: 1.25rem; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-h1, h2, h3 {
-  font-family: var(--font-bricolage), var(--font-manrope), sans-serif;
-  letter-spacing: -0.02em;
 }
