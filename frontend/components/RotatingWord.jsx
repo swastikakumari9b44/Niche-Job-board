@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 const WORDS = ["AI/ML", "Web3", "Healthcare", "Cybersecurity", "Data Science", "Frontend"];
 
-export default function RotatingWord() {
+export default function RotatingWord({ className = "text-brand-600" }) {
   const [i, setI] = useState(0);
 
   useEffect(() => {
@@ -12,7 +12,7 @@ export default function RotatingWord() {
   }, []);
 
   return (
-    <span className="inline-block min-h-[1.2em] text-brand-600">
+    <span className={`inline-block min-h-[1.2em] ${className}`}>
       <span key={WORDS[i]} className="inline-block animate-fade-up">
         {WORDS[i]}
       </span>
